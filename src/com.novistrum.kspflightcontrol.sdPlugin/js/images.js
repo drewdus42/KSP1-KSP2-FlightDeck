@@ -1,6 +1,7 @@
 /**
- * Draws key images: existing PNG assets when they exist, canvas tiles otherwise.
- * Results are cached per context so the 4 Hz poll does not re-upload identical images.
+ * Draws key images. Uses the plugin's own artwork where it exists and composes text on top,
+ * falling back to a plain canvas tile when an asset is missing or unreadable.
+ * Results are cached per frame so the 4 Hz poll never re-uploads an identical image.
  */
 (function (root, factory) {
 	const api = factory();
@@ -15,6 +16,7 @@
 
 	const assetCache = new Map();
 	const assetPending = new Map();
+	const imageElements = new Map();
 	const tileCache = new Map();
 
 	function attemptLoad(path, useCrossOrigin) {
@@ -41,7 +43,7 @@
 			canvas.getContext("2d").drawImage(image, 0, 0);
 			return canvas.toDataURL("image/png");
 		} catch (cause) {
-			// Canvas is tainted (file:// without file access); caller retries or falls back.
+			// Canvas is tainted (file:// without file access); the caller retries or falls back.
 			return null;
 		}
 	}
@@ -54,17 +56,28 @@
 			return assetPending.get(path);
 		}
 
-		// Plain load first: Stream Deck allows file access for plugin pages, and asking for
+		// Plain load first: Stream Deck allows file access for plugin pages, and requesting
 		// CORS (crossOrigin) is what breaks asset loading on file:// in other environments.
 		const promise = attemptLoad(path, false)
 			.then(function (image) {
-				const direct = image ? toDataUrl(image) : null;
-				if (direct) {
-					return direct;
+				if (image) {
+					const direct = toDataUrl(image);
+					if (direct) {
+						imageElements.set(path, image);
+						return direct;
+					}
 				}
 
 				return attemptLoad(path, true).then(function (corsImage) {
-					return corsImage ? toDataUrl(corsImage) : null;
+					if (!corsImage) {
+						return null;
+					}
+
+					const converted = toDataUrl(corsImage);
+					if (converted) {
+						imageElements.set(path, corsImage);
+					}
+					return converted;
 				});
 			})
 			.then(function (url) {
@@ -97,10 +110,34 @@
 		context.closePath();
 	}
 
+	function tileSignature(tile) {
+		return [
+			tile.backgroundPath || "",
+			tile.label || "",
+			tile.value || "",
+			tile.unit || "",
+			tile.accent || "",
+			tile.color || "",
+			tile.background || "",
+			tile.badge || "",
+			tile.badgeColor || "",
+			tile.valueSize || ""
+		].join("|");
+	}
+
+	/** Returns a PNG data URL, or null when the requested background art is not loaded yet. */
 	function renderTile(tile) {
-		const key = JSON.stringify(tile);
+		const key = tileSignature(tile);
 		if (tileCache.has(key)) {
 			return tileCache.get(key);
+		}
+
+		let artwork = null;
+		if (tile.backgroundPath) {
+			artwork = imageElements.get(tile.backgroundPath) || null;
+			if (!artwork) {
+				return null;
+			}
 		}
 
 		const canvas = document.createElement("canvas");
@@ -108,20 +145,38 @@
 		canvas.height = TILE_SIZE;
 		const context = canvas.getContext("2d");
 
-		context.fillStyle = tile.background || "#0d1219";
-		roundedRect(context, 3, 3, TILE_SIZE - 6, TILE_SIZE - 6, 16);
-		context.fill();
+		if (artwork) {
+			try {
+				context.drawImage(artwork, 0, 0, TILE_SIZE, TILE_SIZE);
+			} catch (cause) {
+				artwork = null;
+			}
+		}
 
-		context.fillStyle = tile.accent || "#38bdf8";
-		roundedRect(context, 3, 3, TILE_SIZE - 6, 12, 8);
-		context.fill();
+		if (!artwork) {
+			context.fillStyle = tile.background || "#0d1219";
+			roundedRect(context, 3, 3, TILE_SIZE - 6, TILE_SIZE - 6, 16);
+			context.fill();
+
+			context.fillStyle = tile.accent || "#38bdf8";
+			roundedRect(context, 3, 3, TILE_SIZE - 6, 12, 8);
+			context.fill();
+		} else {
+			// Darken the artwork slightly so the readout stays legible.
+			context.fillStyle = "rgba(6, 10, 16, 0.55)";
+			roundedRect(context, 3, 3, TILE_SIZE - 6, TILE_SIZE - 6, 16);
+			context.fill();
+
+			context.fillStyle = tile.accent || "#38bdf8";
+			roundedRect(context, 3, 3, TILE_SIZE - 6, 6, 3);
+			context.fill();
+		}
 
 		context.textAlign = "center";
 		context.textBaseline = "middle";
 
-		context.fillStyle = "#93a4b8";
+		context.fillStyle = "#c3d0de";
 		if (tile.badge) {
-			// Leave room for the badge in the top right corner.
 			context.textAlign = "left";
 			context.font = "600 15px " + FONT;
 			context.fillText(tile.label || "", 14, 38, TILE_SIZE - 64);
@@ -131,11 +186,11 @@
 			context.fillText(tile.label || "", TILE_SIZE / 2, 38, TILE_SIZE - 22);
 		}
 
-		context.fillStyle = tile.color || "#f8fafc";
+		context.fillStyle = tile.color || "#ffffff";
 		context.font = "700 " + (tile.valueSize || 38) + "px " + FONT;
 		context.fillText(tile.value || "", TILE_SIZE / 2, 78, TILE_SIZE - 18);
 
-		context.fillStyle = "#7f8fa3";
+		context.fillStyle = "#a9b8c8";
 		context.font = "500 17px " + FONT;
 		context.fillText(tile.unit || "", TILE_SIZE / 2, 116, TILE_SIZE - 22);
 
@@ -164,17 +219,6 @@
 			action();
 		}
 
-		function drawTile(context, tile, signature) {
-			apply(context, signature, function () {
-				streamDeck.setImage(context, renderTile(tile));
-				streamDeck.setTitle(context, "");
-			});
-		}
-
-		/**
-		 * spec: { image, title, label, value, unit, accent, color, badge }
-		 * When the asset is unavailable the canvas tile fallback is drawn instead.
-		 */
 		function key(context, spec) {
 			const value = spec || {};
 			const tile = {
@@ -184,27 +228,65 @@
 				accent: value.accent,
 				color: value.color,
 				background: value.background,
+				backgroundPath: value.backgroundImage,
 				badge: value.badge,
 				badgeColor: value.badgeColor,
 				valueSize: value.valueSize
 			};
 
-			if (!value.image) {
-				drawTile(context, tile, "tile|" + JSON.stringify(tile));
+			const signature = "tile|" + tileSignature(tile);
+
+			function drawComposed() {
+				const url = renderTile(tile);
+				if (url) {
+					apply(context, signature, function () {
+						streamDeck.setImage(context, url);
+						streamDeck.setTitle(context, "");
+					});
+					return true;
+				}
+				return false;
+			}
+
+			function drawArtwork() {
+				const titleText = value.title || "";
+				loadAsset(value.image).then(function (url) {
+					if (url) {
+						apply(context, "asset|" + value.image + "|" + titleText, function () {
+							streamDeck.setImage(context, url);
+							streamDeck.setTitle(context, titleText);
+						});
+						return;
+					}
+
+					const fallback = renderTile(Object.assign({}, tile, { backgroundPath: null }));
+					apply(context, signature + "|fallback", function () {
+						streamDeck.setImage(context, fallback);
+						streamDeck.setTitle(context, "");
+					});
+				});
+			}
+
+			if (!value.backgroundImage && !value.image) {
+				drawComposed();
 				return;
 			}
 
-			const titleText = value.title || "";
-			loadAsset(value.image).then(function (url) {
-				if (url) {
-					apply(context, "asset|" + value.image + "|" + titleText, function () {
-						streamDeck.setImage(context, url);
-						streamDeck.setTitle(context, titleText);
-					});
-				} else {
-					drawTile(context, tile, "tile|" + JSON.stringify(tile));
+			// Artwork as the face of the key: text is composed onto it when possible,
+			// otherwise the raw asset is shown with the Stream Deck title on top.
+			if (value.backgroundImage) {
+				loadAsset(value.backgroundImage).then(function () {
+					if (!drawComposed() && value.image) {
+						drawArtwork();
+					}
+				});
+
+				if (!value.image) {
+					return;
 				}
-			});
+			}
+
+			drawArtwork();
 		}
 
 		function feedback(context, payload, signature) {
@@ -228,6 +310,10 @@
 	return {
 		createRenderer: createRenderer,
 		loadAsset: loadAsset,
-		renderTile: renderTile
+		renderTile: renderTile,
+		tileSignature: tileSignature,
+		isLoaded: function (path) {
+			return imageElements.has(path);
+		}
 	};
 });

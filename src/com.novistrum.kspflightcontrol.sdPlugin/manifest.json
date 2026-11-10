@@ -62,12 +62,12 @@
 			"PropertyInspectorPath": "actions/template/property-inspector/sas-inspector.html"
 		},
 		{
-			"Icon": "actions/template/assets/telemetry",
+			"Icon": "actions/template/assets/actionImage",
 			"Name": "Telemetry",
 			"Controllers": ["Keypad"],
 			"States": [
 				{
-					"Image": "actions/template/assets/telemetry"
+					"Image": "actions/template/assets/actionImage"
 				}
 			],
 			"Tooltip": "Show a live flight readout (altitude, apoapsis, resources, ...)",
@@ -75,12 +75,12 @@
 			"PropertyInspectorPath": "actions/template/property-inspector/telemetry-inspector.html"
 		},
 		{
-			"Icon": "actions/template/assets/status",
+			"Icon": "actions/template/assets/plugin",
 			"Name": "Connection Status",
 			"Controllers": ["Keypad"],
 			"States": [
 				{
-					"Image": "actions/template/assets/status"
+					"Image": "actions/template/assets/plugin"
 				}
 			],
 			"Tooltip": "Shows the mod connection state and the active vessel",
@@ -111,12 +111,12 @@
 			"PropertyInspectorPath": "actions/template/property-inspector/thrust-inspector.html"
 		},
 		{
-			"Icon": "actions/template/assets/timewarp",
+			"Icon": "actions/template/assets/stage",
 			"Name": "Time Warp",
 			"Controllers": ["Encoder"],
 			"Encoder": {
 				"layout": "Layouts/timeWarpLayout.json",
-				"Icon": "Buttons/TouchBar/TimeWarp.svg",
+				"Icon": "actions/template/assets/stage",
 				"StackColor": "#a855f7",
 				"TriggerDescription": {
 					"Rotate": "Change time warp rate",
@@ -126,7 +126,7 @@
 			},
 			"States": [
 				{
-					"Image": "actions/template/assets/timewarp"
+					"Image": "actions/template/assets/stage"
 				}
 			],
 			"Tooltip": "Change time warp and pause the game",

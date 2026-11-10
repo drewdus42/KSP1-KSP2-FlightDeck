@@ -4,7 +4,7 @@
     {
       "key": "icon",
       "type": "pixmap",
-      "value": "Buttons/TouchBar/TimeWarp.svg",
+      "value": "Buttons/TouchBar/TimeWarp_Static.jpg",
       "zOrder": 0,
       "enabled": true,
       "rect": [0, 0, 200, 100]

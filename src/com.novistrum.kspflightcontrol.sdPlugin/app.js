@@ -145,10 +145,12 @@ function renderGroup(entry, snapshot, status) {
 
 	if (!configured) {
 		renderer.key(entry.context, {
+			backgroundImage: KspUtil.ASSETS.panel,
 			label: "ACTION GROUP",
 			value: "SETUP",
 			unit: "pick one in settings",
-			accent: "#64748b"
+			accent: "#64748b",
+			valueSize: 30
 		});
 		return;
 	}
@@ -166,14 +168,13 @@ function renderGroup(entry, snapshot, status) {
 function renderStaging(entry, snapshot, status) {
 	const staging = status === "flight" && snapshot ? snapshot.staging : null;
 	const prelaunch = staging ? Boolean(staging.prelaunch) : true;
-	const label = prelaunch ? "LAUNCH" : "STAGE";
-	const counter = staging ? staging.currentStage + " / " + staging.stageCount : KspUtil.DASH;
 
+	// The artwork already says LAUNCH / NEXT STAGE, so the key carries no extra text.
 	renderer.key(entry.context, {
-		image: prelaunch ? "Buttons/Other/Launch.jpg" : "Buttons/Other/Stage.jpg",
-		title: counter,
-		label: label,
-		value: counter,
+		image: prelaunch ? KspUtil.ASSETS.launch : KspUtil.ASSETS.stage,
+		title: "",
+		label: prelaunch ? "Launch" : "Stage",
+		value: "",
 		unit: staging ? "" : offlineHint(status),
 		accent: "#f59e0b"
 	});
@@ -184,17 +185,31 @@ function renderSas(entry, snapshot, status) {
 	const sas = status === "flight" && snapshot ? snapshot.sas : null;
 	const enabled = Boolean(sas && sas.enabled);
 	const activeMode = sas ? sas.mode : null;
-	const matches = Boolean(enabled && activeMode === desired);
-	const title = enabled ? KspUtil.sasBadge(activeMode) : KspUtil.sasBadge(desired);
+	// The key lights up only when SAS is engaged in *this* key's mode.
+	const engagedHere = Boolean(enabled && activeMode === desired);
 
+	const artwork = KspUtil.sasImage(desired, engagedHere);
+	if (artwork) {
+		renderer.key(entry.context, {
+			image: artwork,
+			title: "",
+			label: KspUtil.sasModeLabel(desired),
+			value: engagedHere ? "ON" : "OFF",
+			unit: sas ? (engagedHere ? "" : enabled ? "SAS: " + KspUtil.sasBadge(activeMode) : "") : offlineHint(status),
+			accent: engagedHere ? "#22c55e" : "#64748b",
+			valueSize: 30
+		});
+		return;
+	}
+
+	// Maneuver (and anything else without artwork) gets a drawn tile.
 	renderer.key(entry.context, {
-		image: enabled ? "Buttons/Other/SASon.jpg" : "Buttons/Other/SASoff.jpg",
-		title: title,
-		label: "SAS " + KspUtil.sasBadge(desired),
-		value: KspUtil.sasBadge(activeMode || desired),
-		unit: sas ? (matches ? "engaged" : enabled ? "other mode" : "off") : offlineHint(status),
-		accent: matches ? "#22c55e" : enabled ? "#f59e0b" : "#64748b",
-		badge: enabled ? "ON" : null
+		backgroundImage: KspUtil.ASSETS.panel,
+		label: KspUtil.sasModeLabel(desired).toUpperCase(),
+		value: engagedHere ? "ON" : "OFF",
+		unit: sas ? (enabled && !engagedHere ? "SAS: " + KspUtil.sasBadge(activeMode) : "") : offlineHint(status),
+		accent: engagedHere ? "#22c55e" : "#64748b",
+		valueSize: 32
 	});
 }
 
@@ -205,6 +220,7 @@ function renderTelemetry(entry, snapshot, status) {
 	const value = online ? formatted.value : KspUtil.DASH;
 
 	renderer.key(entry.context, {
+		backgroundImage: KspUtil.ASSETS.panel,
 		label: formatted.label,
 		value: value,
 		unit: online ? formatted.unit : offlineHint(status),
@@ -216,22 +232,24 @@ function renderTelemetry(entry, snapshot, status) {
 function renderStatus(entry, snapshot, status, error) {
 	if (status === "offline") {
 		renderer.key(entry.context, {
-			image: "Buttons/Other/ServerDown.png",
-			title: "OFFLINE",
+			backgroundImage: KspUtil.ASSETS.panel,
 			label: "KSP FLIGHT DECK",
 			value: "OFFLINE",
 			unit: error === "unreachable" ? "mod not found" : "check the mod",
-			accent: "#ef4444"
+			accent: "#ef4444",
+			valueSize: 30
 		});
 		return;
 	}
 
 	if (status === "menu") {
 		renderer.key(entry.context, {
+			backgroundImage: KspUtil.ASSETS.panel,
 			label: "KSP FLIGHT DECK",
 			value: "READY",
 			unit: "main menu",
-			accent: "#f59e0b"
+			accent: "#f59e0b",
+			valueSize: 30
 		});
 		return;
 	}
@@ -240,6 +258,7 @@ function renderStatus(entry, snapshot, status, error) {
 	const name = vessel.name || "VESSEL";
 
 	renderer.key(entry.context, {
+		backgroundImage: KspUtil.ASSETS.panel,
 		label: (vessel.body || "FLIGHT").toUpperCase(),
 		value: name.length > 12 ? name.slice(0, 12) : name,
 		unit: vessel.situationString || vessel.situation || "",

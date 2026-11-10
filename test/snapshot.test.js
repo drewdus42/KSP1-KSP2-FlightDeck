@@ -74,6 +74,26 @@ test("every telemetry field renders real values from the fixture", () => {
 	assert.equal(util.formatTelemetry("warp", snapshot).value, "×" + snapshot.timeWarp.Rate);
 });
 
+test("staging label from the mod wins over the prelaunch flag", () => {
+	// The mod reports Label so the key can say Launch on the pad and Stage afterwards,
+	// including the "already launched but not yet staged" case.
+	const normalized = util.normalizeSnapshot({ staging: { CurrentStage: 2, StageCount: 2, LastStage: 2, Prelaunch: true, Label: "Launch" } });
+	assert.equal(normalized.staging.label, "Launch");
+	assert.equal(normalized.staging.lastStage, 2);
+
+	const staged = util.normalizeSnapshot({ staging: { CurrentStage: 1, StageCount: 2, LastStage: 2, Prelaunch: false, Label: "Stage" } });
+	assert.equal(staged.staging.label, "Stage");
+});
+
+test("landed vessels report no usable orbit", () => {
+	// Captured shape when KSP has no real orbit: Pe is negative and Ap equals altitude.
+	const landed = util.normalizeSnapshot({
+		orbit: { available: false, landed: true, altitude: 71, periapsis: -598387, apoapsis: 71 }
+	});
+	assert.equal(landed.orbit.available, false);
+	assert.equal(util.formatTelemetry("altitude", landed).value, "71 m");
+});
+
 test("resource readouts use the fixture", () => {
 	Object.keys(snapshot.resources).forEach((name) => {
 		const result = util.formatTelemetry("resource:" + name, snapshot);

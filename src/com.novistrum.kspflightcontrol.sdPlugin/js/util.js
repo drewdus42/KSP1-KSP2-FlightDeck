@@ -55,6 +55,41 @@
 		{ id: "Maneuver", label: "Maneuver Node" }
 	];
 
+	/** Artwork from the original plugin, reused as-is. */
+	const ASSETS = {
+		groupOff: "Buttons/ActionGroup/False/",
+		groupOn: "Buttons/ActionGroup/True/",
+		sas: "Buttons/SAS/SAS Modes Labelled/",
+		launch: "Buttons/Other/Launch.jpg",
+		stage: "Buttons/Other/Stage.jpg",
+		panel: "Buttons/Other/Blank3.jpg",
+		serverDown: "Buttons/Other/ServerDown.png"
+	};
+
+	/**
+	 * SAS artwork suffixes. "SASnorth"/"SASsouth" are unused because KSP has no such modes;
+	 * Maneuver has no drawing yet, so those keys fall back to a drawn tile.
+	 */
+	const SAS_ART = {
+		StabilityAssist: "lock",
+		Prograde: "pg",
+		Retrograde: "rg",
+		Normal: "n",
+		Antinormal: "an",
+		RadialIn: "ri",
+		RadialOut: "ro",
+		Target: "up",
+		AntiTarget: "down"
+	};
+
+	function sasImage(mode, on) {
+		const suffix = SAS_ART[mode];
+		if (!suffix) {
+			return null;
+		}
+		return ASSETS.sas + "SAS" + suffix + (on ? "On" : "Off") + ".jpg";
+	}
+
 	function clamp(value, min, max) {
 		const number = Number(value);
 		if (!isFiniteNumber(number)) {
@@ -270,6 +305,7 @@
 			staging: {
 				currentStage: readNumber(pick(staging, ["currentStage", "CurrentStage"])),
 				stageCount: readNumber(pick(staging, ["stageCount", "StageCount"])),
+				lastStage: readNumber(pick(staging, ["lastStage", "LastStage"])),
 				canStage: Boolean(pick(staging, ["canStage", "CanStage"])),
 				prelaunch: Boolean(pick(staging, ["prelaunch", "Prelaunch"])),
 				label: pick(staging, ["label", "Label"]),
@@ -402,13 +438,16 @@
 		if (!group || group === "None") {
 			return null;
 		}
-		return "Buttons/ActionGroup/" + (state ? "True" : "False") + "/" + group + ".png";
+		return (state ? ASSETS.groupOn : ASSETS.groupOff) + group + ".png";
 	}
 
 	return {
 		DASH: DASH,
 		TELEMETRY_FIELDS: TELEMETRY_FIELDS,
 		SAS_MODE_OPTIONS: SAS_MODE_OPTIONS,
+		ASSETS: ASSETS,
+		SAS_ART: SAS_ART,
+		sasImage: sasImage,
 		clamp: clamp,
 		clamp01: clamp01,
 		isFiniteNumber: isFiniteNumber,
