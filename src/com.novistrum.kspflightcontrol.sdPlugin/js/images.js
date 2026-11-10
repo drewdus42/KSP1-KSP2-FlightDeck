@@ -17,6 +17,35 @@
 	const assetPending = new Map();
 	const tileCache = new Map();
 
+	function attemptLoad(path, useCrossOrigin) {
+		return new Promise(function (resolve) {
+			const image = new Image();
+			if (useCrossOrigin) {
+				image.crossOrigin = "Anonymous";
+			}
+			image.onload = function () {
+				resolve(image);
+			};
+			image.onerror = function () {
+				resolve(null);
+			};
+			image.src = path;
+		});
+	}
+
+	function toDataUrl(image) {
+		try {
+			const canvas = document.createElement("canvas");
+			canvas.width = image.width || TILE_SIZE;
+			canvas.height = image.height || TILE_SIZE;
+			canvas.getContext("2d").drawImage(image, 0, 0);
+			return canvas.toDataURL("image/png");
+		} catch (cause) {
+			// Canvas is tainted (file:// without file access); caller retries or falls back.
+			return null;
+		}
+	}
+
 	function loadAsset(path) {
 		if (assetCache.has(path)) {
 			return Promise.resolve(assetCache.get(path));
@@ -25,32 +54,29 @@
 			return assetPending.get(path);
 		}
 
-		const promise = new Promise(function (resolve) {
-			const image = new Image();
-			image.crossOrigin = "Anonymous";
-			image.onload = function () {
-				try {
-					const canvas = document.createElement("canvas");
-					canvas.width = image.width || TILE_SIZE;
-					canvas.height = image.height || TILE_SIZE;
-					canvas.getContext("2d").drawImage(image, 0, 0);
-					const url = canvas.toDataURL("image/png");
-					assetCache.set(path, url);
-					assetPending.delete(path);
-					resolve(url);
-				} catch (cause) {
-					assetCache.set(path, null);
-					assetPending.delete(path);
-					resolve(null);
+		// Plain load first: Stream Deck allows file access for plugin pages, and asking for
+		// CORS (crossOrigin) is what breaks asset loading on file:// in other environments.
+		const promise = attemptLoad(path, false)
+			.then(function (image) {
+				const direct = image ? toDataUrl(image) : null;
+				if (direct) {
+					return direct;
 				}
-			};
-			image.onerror = function () {
+
+				return attemptLoad(path, true).then(function (corsImage) {
+					return corsImage ? toDataUrl(corsImage) : null;
+				});
+			})
+			.then(function (url) {
+				assetCache.set(path, url);
+				assetPending.delete(path);
+				return url;
+			})
+			.catch(function () {
 				assetCache.set(path, null);
 				assetPending.delete(path);
-				resolve(null);
-			};
-			image.src = path;
-		});
+				return null;
+			});
 
 		assetPending.set(path, promise);
 		return promise;
@@ -94,8 +120,16 @@
 		context.textBaseline = "middle";
 
 		context.fillStyle = "#93a4b8";
-		context.font = "600 17px " + FONT;
-		context.fillText(tile.label || "", TILE_SIZE / 2, 38, TILE_SIZE - 22);
+		if (tile.badge) {
+			// Leave room for the badge in the top right corner.
+			context.textAlign = "left";
+			context.font = "600 15px " + FONT;
+			context.fillText(tile.label || "", 14, 38, TILE_SIZE - 64);
+			context.textAlign = "center";
+		} else {
+			context.font = "600 17px " + FONT;
+			context.fillText(tile.label || "", TILE_SIZE / 2, 38, TILE_SIZE - 22);
+		}
 
 		context.fillStyle = tile.color || "#f8fafc";
 		context.font = "700 " + (tile.valueSize || 38) + "px " + FONT;

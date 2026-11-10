@@ -184,7 +184,7 @@ function renderSas(entry, snapshot, status) {
 	renderer.key(entry.context, {
 		image: enabled ? "Buttons/Other/SASon.jpg" : "Buttons/Other/SASoff.jpg",
 		title: title,
-		label: KspUtil.sasModeLabel(desired),
+		label: "SAS " + KspUtil.sasBadge(desired),
 		value: KspUtil.sasBadge(activeMode || desired),
 		unit: sas ? (matches ? "engaged" : enabled ? "other mode" : "off") : offlineHint(status),
 		accent: matches ? "#22c55e" : enabled ? "#f59e0b" : "#64748b",
