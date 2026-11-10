@@ -16,6 +16,12 @@ namespace FlightDeck
             _path = path;
             try
             {
+                string directory = Path.GetDirectoryName(path);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
                 if (File.Exists(path))
                 {
                     var info = new FileInfo(path);

@@ -379,32 +379,63 @@ namespace FlightDeck
             VesselAutopilot autopilot = vessel.Autopilot;
             if (autopilot == null)
             {
-                throw new ApiException("sas_unavailable", "This vessel has no SAS: add a probe core or a pilot.");
+                throw new ApiException("sas_unavailable", "This vessel has no SAS: add a pilot or a probe core.");
             }
 
-            if (!string.IsNullOrEmpty(mode))
-            {
-                VesselAutopilot.AutopilotMode parsed;
-                if (!AutopilotModes.TryGetValue(mode, out parsed))
-                {
-                    throw new ApiException("unknown_sas_mode", "Unknown SAS mode '" + mode + "'.");
-                }
+            IList<SasOperation> operations = SasPlan.Build(autopilot.Enabled, autopilot.Mode.ToString(), enabled, mode);
 
-                if (!autopilot.SetMode(parsed) || autopilot.Mode != parsed)
-                {
-                    throw new ApiException("sas_mode_unavailable", "SAS cannot enter " + mode + " right now.");
-                }
-            }
-
-            if (enabled.HasValue)
+            foreach (SasOperation operation in operations)
             {
-                if (enabled.Value)
+                switch (operation.Kind)
                 {
-                    autopilot.Enable();
-                }
-                else
-                {
-                    autopilot.Disable();
+                    case SasOperationKind.Disable:
+                        autopilot.Disable();
+                        break;
+
+                    case SasOperationKind.Enable:
+                    {
+                        VesselAutopilot.AutopilotMode target;
+                        if (!AutopilotModes.TryGetValue(operation.Mode, out target))
+                        {
+                            throw new ApiException("unknown_sas_mode", "Unknown SAS mode '" + operation.Mode + "'.");
+                        }
+
+                        if (!autopilot.CanSetMode(target))
+                        {
+                            throw new ApiException(
+                                "sas_mode_unavailable",
+                                "SAS cannot enter " + operation.Mode + " right now. Target and maneuver modes need a target or a maneuver node.");
+                        }
+
+                        // Enable(mode) is the only overload that keeps the mode: Enable() forces
+                        // StabilityAssist, which used to silently undo a preceding SetMode().
+                        if (!autopilot.Enable(target))
+                        {
+                            throw new ApiException(
+                                "sas_unavailable",
+                                "KSP refused to engage SAS. The vessel needs a pilot or a probe core with SAS.");
+                        }
+
+                        break;
+                    }
+
+                    case SasOperationKind.SetMode:
+                    {
+                        VesselAutopilot.AutopilotMode target;
+                        if (!AutopilotModes.TryGetValue(operation.Mode, out target))
+                        {
+                            throw new ApiException("unknown_sas_mode", "Unknown SAS mode '" + operation.Mode + "'.");
+                        }
+
+                        if (!autopilot.SetMode(target) || autopilot.Mode != target)
+                        {
+                            throw new ApiException(
+                                "sas_mode_unavailable",
+                                "SAS cannot enter " + operation.Mode + " right now. Target and maneuver modes need a target or a maneuver node.");
+                        }
+
+                        break;
+                    }
                 }
             }
 
@@ -427,13 +458,18 @@ namespace FlightDeck
 
         private static Dictionary<string, object> StagingState(Vessel vessel)
         {
-            bool prelaunch = vessel.situation == Vessel.Situations.PRELAUNCH;
-            int stageCount = StageManager.StageCount;
+            // On the pad (or with nothing staged yet) the key should read "Launch", matching
+            // the original plugin's behaviour of showing Launch on stage 1 only.
+            bool onPad = vessel.situation == Vessel.Situations.PRELAUNCH;
+            int currentStage = StageManager.CurrentStage;
+            int lastStage = StageManager.LastStage;
+            bool prelaunch = onPad || currentStage >= lastStage;
 
             return new Dictionary<string, object>
             {
-                { "CurrentStage", StageManager.CurrentStage },
-                { "StageCount", stageCount },
+                { "CurrentStage", currentStage },
+                { "StageCount", StageManager.StageCount },
+                { "LastStage", lastStage },
                 { "CanStage", StageManager.CanSeparate },
                 { "Prelaunch", prelaunch },
                 { "Label", prelaunch ? "Launch" : "Stage" },
@@ -470,11 +506,17 @@ namespace FlightDeck
             Orbit orbit = vessel.orbit;
             double atmosphere = vessel.mainBody != null ? vessel.mainBody.atmosphereDepth : 0d;
 
-            if (orbit == null)
+            // While landed or splashed KSP still exposes an Orbit, but Ap/Pe/period are
+            // degenerate (often negative periapsis), so report only what is meaningful.
+            bool hasOrbit = orbit != null && !vessel.Landed && !vessel.Splashed;
+
+            if (!hasOrbit)
             {
                 return new Dictionary<string, object>
                 {
                     { "available", false },
+                    { "landed", vessel.Landed },
+                    { "splashed", vessel.Splashed },
                     { "altitude", vessel.altitude },
                     { "surfaceSpeed", vessel.srfSpeed },
                     { "verticalSpeed", vessel.verticalSpeed },

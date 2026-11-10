@@ -319,8 +319,12 @@ namespace FlightDeck.Core
             }
             catch (Exception ex)
             {
-                // Client disconnects are normal noise for a polled API.
-                Log("Connection error: " + ex.Message);
+                // The plugin polls continuously and Stream Deck reloads pages often, so clients
+                // aborting a keep-alive connection is routine. Only real faults are worth a log line.
+                if (!IsClientDisconnect(ex))
+                {
+                    Log("Connection error: " + ex.Message);
+                }
             }
             finally
             {
@@ -614,6 +618,38 @@ namespace FlightDeck.Core
             }
 
             stream.Flush();
+        }
+
+        private static bool IsClientDisconnect(Exception exception)
+        {
+            for (Exception current = exception; current != null; current = current.InnerException)
+            {
+                if (current is SocketException)
+                {
+                    var socketError = (SocketException)current;
+                    switch (socketError.SocketErrorCode)
+                    {
+                        case SocketError.ConnectionReset:
+                        case SocketError.ConnectionAborted:
+                        case SocketError.Shutdown:
+                        case SocketError.TimedOut:
+                        case SocketError.Disconnecting:
+                            return true;
+                    }
+                }
+
+                if (current is ObjectDisposedException || current is System.IO.EndOfStreamException)
+                {
+                    return true;
+                }
+
+                if (current is IOException && current.InnerException == null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static string GetReason(int statusCode)
