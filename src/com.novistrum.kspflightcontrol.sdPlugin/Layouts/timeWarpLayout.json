@@ -1,0 +1,47 @@
+{
+  "id": "timeWarpLayout",
+  "items": [
+    {
+      "key": "icon",
+      "type": "pixmap",
+      "value": "Buttons/TouchBar/TimeWarp.svg",
+      "zOrder": 0,
+      "enabled": true,
+      "rect": [0, 0, 200, 100]
+    },
+    {
+      "key": "title",
+      "type": "text",
+      "zOrder": 1,
+      "enabled": true,
+      "rect": [12, 8, 176, 26],
+      "font": { "size": 16, "weight": 600 },
+      "alignment": "left"
+    },
+    {
+      "key": "value",
+      "type": "text",
+      "zOrder": 2,
+      "enabled": true,
+      "rect": [60, 34, 128, 40],
+      "font": { "size": 26, "weight": 700 },
+      "alignment": "right"
+    },
+    {
+      "key": "indicator",
+      "type": "gbar",
+      "zOrder": 3,
+      "enabled": true,
+      "rect": [25, 65, 150, 40],
+      "value": 0,
+      "subtype": 4,
+      "bar_h": 20,
+      "border_w": 0,
+      "bar_bg_c": "0:#64748b,0.5:#a855f7,1:#f472b6",
+      "range": {
+        "min": 0,
+        "max": 100
+      }
+    }
+  ]
+}

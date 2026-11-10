@@ -1,0 +1,68 @@
+/// <reference path="../../../libs/js/property-inspector.js" />
+/// <reference path="../../../libs/js/utils.js" />
+
+let globalSettings = { host: "127.0.0.1", port: 8080 };
+
+$PI.onConnected(function () {
+    $PI.getGlobalSettings();
+});
+
+$PI.onDidReceiveGlobalSettings(function (jsn) {
+    const settings = (jsn && jsn.payload && jsn.payload.settings) || {};
+    globalSettings = {
+        host: settings.host || "127.0.0.1",
+        port: Number(settings.port) || 8080
+    };
+
+    const hostInput = document.getElementById("hostInput");
+    const portInput = document.getElementById("portInput");
+    if (hostInput) {
+        hostInput.value = globalSettings.host;
+    }
+    if (portInput) {
+        portInput.value = globalSettings.port;
+    }
+});
+
+function saveEndpoint() {
+    const hostInput = document.getElementById("hostInput");
+    const portInput = document.getElementById("portInput");
+    const host = (hostInput && hostInput.value.trim()) || "127.0.0.1";
+    const parsedPort = Number(portInput && portInput.value);
+    const port = Math.min(65535, Math.max(1, isFinite(parsedPort) && parsedPort > 0 ? Math.floor(parsedPort) : 8080));
+
+    globalSettings = { host: host, port: port };
+    $PI.setGlobalSettings(globalSettings);
+    setResult("Saved. Press Test connection to verify.", false);
+}
+
+async function testConnection() {
+    saveEndpoint();
+    setResult("Testing " + globalSettings.host + ":" + globalSettings.port + " ...", false);
+
+    try {
+        const response = await fetch("http://" + globalSettings.host + ":" + globalSettings.port + "/api/health", { cache: "no-store" });
+        const body = await response.json();
+
+        if (body && body.ok) {
+            setResult(
+                "Connected: " + (body.mod || "KSPFlightDeck") + " " + (body.version || "") +
+                (body.inFlight ? " (vessel in flight)" : " (main menu)"),
+                false
+            );
+        } else {
+            setResult("The mod answered but reported: " + (body && body.error ? body.error : "unknown error"), true);
+        }
+    } catch (cause) {
+        setResult("No answer on " + globalSettings.host + ":" + globalSettings.port + ". Is KSP running with the mod installed?", true);
+    }
+}
+
+function setResult(message, isError) {
+    const element = document.getElementById("testResult");
+    if (!element) {
+        return;
+    }
+    element.textContent = message;
+    element.style.color = isError ? "#f87171" : "#a7b3c2";
+}

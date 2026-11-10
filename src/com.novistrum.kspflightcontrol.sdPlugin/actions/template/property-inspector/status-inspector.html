@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta
+          name="viewport"
+          content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <title>KSP Flight Control - Connection</title>
+    <link rel="stylesheet" href="../../../libs/css/sdpi.css" />
+</head>
+
+<body>
+    <div class="sdpi-wrapper">
+        <div class="sdpi-item">
+            <div class="sdpi-item-label">Mod host</div>
+            <input class="sdpi-item-value" type="text" id="hostInput" value="127.0.0.1" onchange="saveEndpoint()" />
+        </div>
+        <div class="sdpi-item">
+            <div class="sdpi-item-label">Mod port</div>
+            <input class="sdpi-item-value" type="text" id="portInput" value="8080" onchange="saveEndpoint()" />
+        </div>
+        <div class="sdpi-item">
+            <button class="sdpi-item-value" id="testButton" onclick="testConnection()">Test connection</button>
+        </div>
+        <div class="sdpi-item">
+            <div class="sdpi-item-info" id="testResult">Leave 127.0.0.1:8080 unless you changed settings.cfg in the mod folder.</div>
+        </div>
+    </div>
+
+    <div class="sdpi-info-label hidden" style="top: -1000" value=""></div>
+
+    <!-- Stream Deck Libs -->
+    <script src="../../../libs/js/constants.js"></script>
+    <script src="../../../libs/js/prototypes.js"></script>
+    <script src="../../../libs/js/timers.js"></script>
+    <script src="../../../libs/js/utils.js"></script>
+    <script src="../../../libs/js/events.js"></script>
+    <script src="../../../libs/js/api.js"></script>
+    <script src="../../../libs/js/property-inspector.js"></script>
+    <script src="../../../libs/js/dynamic-styles.js"></script>
+
+    <!-- Property Inspector Source -->
+    <script src="status-inspector.js"></script>
+</body>
+
+</html>

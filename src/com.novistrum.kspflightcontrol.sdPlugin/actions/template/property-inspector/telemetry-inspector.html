@@ -8,11 +8,20 @@
           content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-    <title>com.novistrum.ksp2flightcontrol Property Inspector</title>
+    <title>KSP Flight Control - Telemetry</title>
     <link rel="stylesheet" href="../../../libs/css/sdpi.css" />
 </head>
 
 <body>
+    <div class="sdpi-wrapper">
+        <div class="sdpi-item">
+            <div class="sdpi-item-label">Readout</div>
+            <select class="sdpi-item-value select" id="telemetryField" onchange="updateField()"></select>
+        </div>
+        <div class="sdpi-item">
+            <div class="sdpi-item-info" id="telemetryHint">Resource readouts appear once the mod reports a vessel in flight.</div>
+        </div>
+    </div>
 
     <div class="sdpi-info-label hidden" style="top: -1000" value=""></div>
 
@@ -26,8 +35,9 @@
     <script src="../../../libs/js/property-inspector.js"></script>
     <script src="../../../libs/js/dynamic-styles.js"></script>
 
-    <!-- Property Inspector Source -->
-    <script src="thrust-inspector.js"></script>
+    <!-- Plugin helpers + Property Inspector Source -->
+    <script src="../../../js/util.js"></script>
+    <script src="telemetry-inspector.js"></script>
 </body>
 
 </html>

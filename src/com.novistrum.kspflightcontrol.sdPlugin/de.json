@@ -1,0 +1,48 @@
+{
+	"Description": "Steuere Kerbal Space Program 1.12 mit dem Stream Deck (benötigt die Mod KSP Flight Deck).",
+	"Name": "KSP Flight Control",
+	"Category": "KSP Flight Control",
+	"com.novistrum.kspflightcontrol.action": {
+		"Name": "Aktionsgruppe",
+		"Tooltip": "Aktionsgruppe umschalten"
+	},
+	"com.novistrum.kspflightcontrol.staging": {
+		"Name": "Stufentrennung",
+		"Tooltip": "Starten oder nächste Stufe aktivieren"
+	},
+	"com.novistrum.kspflightcontrol.sas": {
+		"Name": "SAS-Modus",
+		"Tooltip": "SAS in einem Modus aktivieren, erneut drücken zum Ausschalten"
+	},
+	"com.novistrum.kspflightcontrol.telemetry": {
+		"Name": "Telemetrie",
+		"Tooltip": "Live-Flugdaten anzeigen"
+	},
+	"com.novistrum.kspflightcontrol.status": {
+		"Name": "Verbindungsstatus",
+		"Tooltip": "Zeigt Verbindung und aktives Raumschiff"
+	},
+	"com.novistrum.kspflightcontrol.thrust": {
+		"Name": "Schub",
+		"Tooltip": "Schubregler des aktiven Raumschiffs"
+	},
+	"com.novistrum.kspflightcontrol.timewarp": {
+		"Name": "Zeitraffer",
+		"Tooltip": "Zeitraffer ändern und pausieren"
+	},
+	"Localization": {
+		"Action Group": "Aktionsgruppe",
+		"Staging": "Stufentrennung",
+		"SAS Mode": "SAS-Modus",
+		"Telemetry": "Telemetrie",
+		"Connection Status": "Verbindungsstatus",
+		"Thrust": "Schub",
+		"Time Warp": "Zeitraffer",
+		"Mod host": "Mod-Host",
+		"Mod port": "Mod-Port",
+		"Test connection": "Verbindung testen",
+		"Action group": "Aktionsgruppe",
+		"SAS mode": "SAS-Modus",
+		"Readout": "Anzeige"
+	}
+}

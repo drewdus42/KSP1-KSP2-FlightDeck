@@ -10,28 +10,37 @@
       "rect": [0, 0, 200, 100]
     },
     {
-      "key": "value",
+      "key": "title",
       "type": "text",
       "zOrder": 1,
       "enabled": true,
-      "rect": [120, 50, 50, 50],
-      "font": { "size": 24, "weight": 600 },
+      "rect": [12, 8, 176, 26],
+      "font": { "size": 16, "weight": 600 },
+      "alignment": "left"
+    },
+    {
+      "key": "value",
+      "type": "text",
+      "zOrder": 2,
+      "enabled": true,
+      "rect": [110, 36, 78, 40],
+      "font": { "size": 24, "weight": 700 },
       "alignment": "right"
     },
     {
       "key": "indicator",
       "type": "gbar",
-      "zOrder": 2,
+      "zOrder": 3,
       "enabled": true,
       "rect": [25, 65, 150, 40],
-      "value": 100,
+      "value": 0,
       "subtype": 4,
       "bar_h": 20,
       "border_w": 0,
-      "bar_bg_c": "0:#ff0000,0.4:#00ff00,1:#00ff00",
+      "bar_bg_c": "0:#ef4444,0.4:#f59e0b,1:#22c55e",
       "range": {
-          "min": 0,
-          "max": 100
+        "min": 0,
+        "max": 100
       }
     }
   ]

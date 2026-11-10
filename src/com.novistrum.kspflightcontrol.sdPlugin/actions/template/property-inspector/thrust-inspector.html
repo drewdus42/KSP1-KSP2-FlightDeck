@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta
+          name="viewport"
+          content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <title>KSP Flight Control - Thrust</title>
+    <link rel="stylesheet" href="../../../libs/css/sdpi.css" />
+</head>
+
+<body>
+    <div class="sdpi-wrapper">
+        <div class="sdpi-item">
+            <div class="sdpi-item-label">Rotate</div>
+            <div class="sdpi-item-value">1% per tick, 5% on fast flicks</div>
+        </div>
+        <div class="sdpi-item">
+            <div class="sdpi-item-label">Push</div>
+            <div class="sdpi-item-value">Throttle to 0%</div>
+        </div>
+        <div class="sdpi-item">
+            <div class="sdpi-item-label">Touch</div>
+            <div class="sdpi-item-value">Throttle to 100%</div>
+        </div>
+        <div class="sdpi-item">
+            <div class="sdpi-item-info">The dial mirrors the in-game throttle, so manual throttle changes show up here too.</div>
+        </div>
+    </div>
+
+    <div class="sdpi-info-label hidden" style="top: -1000" value=""></div>
+
+    <!-- Stream Deck Libs -->
+    <script src="../../../libs/js/constants.js"></script>
+    <script src="../../../libs/js/prototypes.js"></script>
+    <script src="../../../libs/js/timers.js"></script>
+    <script src="../../../libs/js/utils.js"></script>
+    <script src="../../../libs/js/events.js"></script>
+    <script src="../../../libs/js/api.js"></script>
+    <script src="../../../libs/js/property-inspector.js"></script>
+    <script src="../../../libs/js/dynamic-styles.js"></script>
+
+    <!-- Property Inspector Source -->
+    <script src="thrust-inspector.js"></script>
+</body>
+
+</html>

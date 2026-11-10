@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta
+          name="viewport"
+          content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <title>KSP Flight Control - SAS Mode</title>
+    <link rel="stylesheet" href="../../../libs/css/sdpi.css" />
+</head>
+
+<body>
+    <div class="sdpi-wrapper">
+        <div class="sdpi-item">
+            <div class="sdpi-item-label">SAS mode</div>
+            <select class="sdpi-item-value select" id="sasMode" onchange="updateSasMode()">
+                <option value="StabilityAssist">Stability Assist</option>
+                <option value="Prograde">Prograde</option>
+                <option value="Retrograde">Retrograde</option>
+                <option value="Normal">Normal</option>
+                <option value="Antinormal">Antinormal</option>
+                <option value="RadialIn">Radial In</option>
+                <option value="RadialOut">Radial Out</option>
+                <option value="Target">Target</option>
+                <option value="AntiTarget">Anti-Target</option>
+                <option value="Maneuver">Maneuver Node</option>
+            </select>
+        </div>
+        <div class="sdpi-item">
+            <div class="sdpi-item-info">Press the key to enable SAS in this mode. Press again while it is active to switch SAS off. Modes that need a target or a maneuver node will flash red if KSP refuses them.</div>
+        </div>
+    </div>
+
+    <div class="sdpi-info-label hidden" style="top: -1000" value=""></div>
+
+    <!-- Stream Deck Libs -->
+    <script src="../../../libs/js/constants.js"></script>
+    <script src="../../../libs/js/prototypes.js"></script>
+    <script src="../../../libs/js/timers.js"></script>
+    <script src="../../../libs/js/utils.js"></script>
+    <script src="../../../libs/js/events.js"></script>
+    <script src="../../../libs/js/api.js"></script>
+    <script src="../../../libs/js/property-inspector.js"></script>
+    <script src="../../../libs/js/dynamic-styles.js"></script>
+
+    <!-- Property Inspector Source -->
+    <script src="sas-inspector.js"></script>
+</body>
+
+</html>
