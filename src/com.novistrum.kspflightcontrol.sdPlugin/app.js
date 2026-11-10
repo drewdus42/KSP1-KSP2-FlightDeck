@@ -190,12 +190,11 @@ function renderSas(entry, snapshot, status) {
 
 	const artwork = KspUtil.sasImage(desired, engagedHere);
 	if (artwork) {
-		// Unlabelled artwork: caption it ourselves so the key still names the mode.
+		// Pure artwork, no text: the filled/outline icon already shows the state.
 		renderer.key(entry.context, {
-			backgroundImage: artwork,
-			label: KspUtil.sasModeLabel(desired).toUpperCase(),
-			labelAtBottom: true,
-			accent: engagedHere ? "#22c55e" : "#64748b"
+			image: artwork,
+			title: "",
+			label: KspUtil.sasModeLabel(desired)
 		});
 		return;
 	}
