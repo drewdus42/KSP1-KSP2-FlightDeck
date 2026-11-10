@@ -76,6 +76,17 @@ node --test test\util.test.js test\state.test.js test\manifest.test.js   # 23 te
 .\DistributionTool.exe -b -i "src\com.novistrum.kspflightcontrol.sdPlugin" -o "Release"
 ```
 
+To exercise the plugin against a live API without launching KSP, start the mod's dev host and run
+the end-to-end check (it uses the same `js/api.js`, `js/state.js` and `js/util.js` the plugin runs):
+
+```powershell
+cd ..\mod
+dotnet run --project tests\FlightDeck.DevHost -- --port 8080
+# in another terminal:
+cd ..\plugin
+node test\live-check.js
+```
+
 `test/manifest.test.js` validates the manifest against the files on disk: every action UUID is
 namespaced and unique, every icon/state/layout/inspector exists, layouts contain the keys the code
 expects, and `app.html` loads scripts in dependency order. `test/state.test.js` starts a fake mod
