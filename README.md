@@ -50,6 +50,10 @@ Diagnostics go to `GameData/KSPFlightDeck/PluginData/KSPFlightDeck.log` (rotated
 | `Antennas` | every `ModuleDeployableAntenna` |
 | `Science` | state = an experiment is ready; switching on runs every available `ModuleScienceExperiment` |
 
+SAS requests go through `SasPlan`, a tested planner: KSP's `Autopilot.Enable()` internally calls
+`Enable(StabilityAssist)`, so engaging must be a single `Enable(mode)` call. The mod reports
+`sas_unavailable` rather than silently doing nothing when a vessel has no SAS capability.
+
 Staging uses `KSP.UI.Screens.StageManager`; SAS uses `VesselAutopilot.SetMode`/`Enable`; time warp
 uses `TimeWarp.SetRate`; pause uses `FlightDriver.SetPause`; delta-v comes from the stock
 `VesselDeltaV` simulation.
@@ -74,7 +78,7 @@ dotnet build src\KSPFlightDeck\KSPFlightDeck.csproj -c Release -p:KspDir="D:\Ste
 ## Test
 
 ```powershell
-dotnet test tests\FlightDeck.Core.Tests\FlightDeck.Core.Tests.csproj   # 66 tests, no KSP needed
+dotnet test tests\FlightDeck.Core.Tests\FlightDeck.Core.Tests.csproj   # 75 tests, no KSP needed
 dotnet build tests\FlightDeck.Smoke\FlightDeck.Smoke.csproj -c Release
 tests\FlightDeck.Smoke\bin\Release\net472\FlightDeck.Smoke.exe        # loads the DLL next to KSP's assemblies
 ```

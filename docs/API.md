@@ -108,6 +108,7 @@ Returns `204` with the CORS preflight headers.
   "staging": {
     "CurrentStage": 3,
     "StageCount": 6,
+    "LastStage": 5,
     "CanStage": true,
     "Prelaunch": false,
     "Label": "Stage",
@@ -144,8 +145,12 @@ Returns `204` with the CORS preflight headers.
 ```
 
 Units: metres for distances/altitudes, m/s for speeds, seconds for times, radians for
-inclination, `0.0–1.0` for throttle. Values that KSP cannot compute (for example apoapsis while
-landed, or delta-v while the stock calculation is not ready) are `null` or `available: false`.
+inclination, `0.0–1.0` for throttle. Values that KSP cannot compute are `null` or
+`available: false`.
+
+`orbit.available` is `false` while the vessel is landed or splashed: KSP still exposes an `Orbit`
+then, but its apoapsis/periapsis/period are degenerate (a resting vessel reports a negative
+periapsis), so only altitude and speed fields are sent.
 
 ## Actions
 
@@ -196,16 +201,20 @@ Modes: `StabilityAssist`, `Prograde`, `Retrograde`, `Normal`, `Antinormal`, `Rad
 `RadialOut`, `Target`, `AntiTarget`, `Maneuver` (aliases: `node`, `radial`, `kill`, …).
 
 A mode that KSP refuses (no target, no maneuver node) returns `400 sas_mode_unavailable`.
+`setSas` with `Enabled: true` always includes the mode in the same call, because KSP's
+`Autopilot.Enable()` reverts to Stability Assist on its own.
 
 ### Staging
 
 | Action | Parameters | `Data` |
 | --- | --- | --- |
-| `getStaging` | – | `{ CurrentStage, StageCount, CanStage, Prelaunch, Label, Situation }` |
+| `getStaging` | – | `{ CurrentStage, StageCount, LastStage, CanStage, Prelaunch, Label, Situation }` |
 | `stage` | – | same, after activating the next stage |
 
-`Prelaunch` is true while the vessel sits on the pad, which is how the plugin decides between the
-"Launch" and "Stage" icons.
+`Prelaunch` (and `Label` = `Launch`) is true while nothing has been staged yet — on the pad, and
+also just after lifting off before the first staging event, which is what the original plugin's
+"Launch" button implied. After the first stage fires it becomes `Stage`.
+`CurrentStage` counts down from `LastStage` to 0.
 
 ### Time warp and pause
 
@@ -238,7 +247,7 @@ Index 0 is 1×; indices 1–3 are the physics warp rates, higher indices are on-
 | `unknown_action` | 400 | action name is not implemented |
 | `unknown_action_group` | 400 | group name is not recognised |
 | `unknown_sas_mode` | 400 | SAS mode is not recognised |
-| `sas_unavailable` | 400 | vessel has no probe core or pilot |
+| `sas_unavailable` | 400 | vessel has no probe core or pilot, or KSP refused to engage SAS |
 | `sas_mode_unavailable` | 400 | KSP refused the mode (no target/node) |
 | `not_in_flight` | 503 | no loaded vessel |
 | `game_busy` | 503 | the game did not answer within 2 seconds |
