@@ -183,7 +183,7 @@ namespace FlightDeck.Core
             Port = ((IPEndPoint)socket.LocalEndPoint).Port;
             _running = true;
 
-            _acceptThread = new Thread(AcceptLoop)
+            _acceptThread = new Thread(() => AcceptLoop(socket))
             {
                 IsBackground = true,
                 Name = "FlightDeck HTTP accept"
@@ -202,11 +202,14 @@ namespace FlightDeck.Core
 
             _running = false;
 
+            Socket socket = _socket;
+            _socket = null;
+
             try
             {
-                if (_socket != null)
+                if (socket != null)
                 {
-                    _socket.Close();
+                    socket.Close();
                 }
             }
             catch (Exception)
@@ -214,7 +217,6 @@ namespace FlightDeck.Core
                 // Socket already torn down.
             }
 
-            _socket = null;
             Log("Flight Deck HTTP server stopped.");
         }
 
@@ -224,23 +226,23 @@ namespace FlightDeck.Core
             _connectionSlots.Dispose();
         }
 
-        private void AcceptLoop()
+        private void AcceptLoop(Socket listener)
         {
-            while (_running)
+            while (_running && listener == _socket)
             {
                 Socket client = null;
                 try
                 {
-                    client = _socket.Accept();
+                    client = listener.Accept();
                 }
                 catch (Exception)
                 {
-                    if (!_running)
+                    if (!_running || listener != _socket)
                     {
                         return;
                     }
 
-                    Log("Accept failed: " + (client == null ? "socket closed" : "transient error"));
+                    Log("Accept failed: transient error");
                     continue;
                 }
 

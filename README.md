@@ -62,6 +62,8 @@ Requirements: .NET SDK 8 (only to build), PowerShell, and KSP 1.12 with its mana
 dotnet build src\KSPFlightDeck\KSPFlightDeck.csproj -c Release
 ```
 
+(Or `dotnet build KSPFlightDeck.sln` to compile every project, including the tests and dev host.)
+
 The output goes straight to `dist\GameData\KSPFlightDeck\Plugins\` (`KSPFlightDeck.dll` plus
 `FlightDeck.Core.dll`). If KSP is not in the default Steam location:
 
@@ -83,6 +85,21 @@ tests\FlightDeck.Smoke\bin\Release\net472\FlightDeck.Smoke.exe        # loads th
 | `src/KSPFlightDeck` | KSP addon and `GameBridge` (the only code that touches KSP) |
 | `tests/FlightDeck.Core.Tests` | xunit tests including a real socket round trip, CORS, keep-alive, legacy envelope compatibility |
 | `tests/FlightDeck.Smoke` | net472 executable that loads `KSPFlightDeck.dll` against the real KSP assemblies, verifies the `KSPAddon` contract, and drives the HTTP API |
+| `tests/FlightDeck.DevHost` | runs the real API with a simulated vessel for plugin work |
+
+## Develop without launching KSP
+
+```powershell
+dotnet run --project tests\FlightDeck.DevHost -- --port 8080
+```
+
+The dev host serves the same endpoints from a simulated orbiting vessel and animates altitude,
+fuel and electric charge. Press `1`–`5` in its console to switch between main menu, prelaunch,
+orbit, paused and offline (the API stops answering), which is a quick way to check the plugin's
+connection states. `q` quits.
+
+From the plugin folder you can then run `node test\live-check.js` to exercise the plugin's real
+client modules against it.
 
 ## Layout
 
