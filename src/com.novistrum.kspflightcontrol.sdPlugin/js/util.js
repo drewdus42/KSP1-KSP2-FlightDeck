@@ -217,6 +217,99 @@
 	}
 
 	/**
+	 * Reads the first defined value, tolerating the mod's mixed casing
+	 * (snapshot sections such as staging/timeWarp are PascalCase, orbits are camelCase).
+	 */
+	function pick(object, names) {
+		if (!object) {
+			return undefined;
+		}
+		for (let i = 0; i < names.length; i++) {
+			const value = object[names[i]];
+			if (value !== undefined && value !== null) {
+				return value;
+			}
+		}
+		return undefined;
+	}
+
+	/**
+	 * Canonical camelCase view of a /api/state snapshot, so the UI only ever deals with
+	 * one spelling regardless of how a given mod build serialises each section.
+	 */
+	function normalizeSnapshot(snapshot) {
+		if (!snapshot) {
+			return null;
+		}
+
+		const vessel = snapshot.vessel || {};
+		const sas = snapshot.sas || {};
+		const staging = snapshot.staging || {};
+		const orbit = snapshot.orbit || {};
+		const warp = snapshot.timeWarp || {};
+		const deltaV = snapshot.deltaV || {};
+
+		return {
+			vessel: {
+				name: pick(vessel, ["name", "Name"]),
+				situation: pick(vessel, ["situation", "Situation"]),
+				situationString: pick(vessel, ["situationString", "SituationString"]),
+				body: pick(vessel, ["body", "Body"]),
+				mass: pick(vessel, ["mass", "Mass"]),
+				crew: pick(vessel, ["crew", "Crew"]),
+				landed: pick(vessel, ["landed", "Landed"]),
+				splashed: pick(vessel, ["splashed", "Splashed"])
+			},
+			throttle: readNumber(snapshot.throttle),
+			sas: {
+				enabled: Boolean(pick(sas, ["enabled", "Enabled"])),
+				mode: pick(sas, ["mode", "Mode"]) || null,
+				canSetMode: Boolean(pick(sas, ["canSetMode", "CanSetMode"]))
+			},
+			actionGroups: snapshot.actionGroups || {},
+			staging: {
+				currentStage: readNumber(pick(staging, ["currentStage", "CurrentStage"])),
+				stageCount: readNumber(pick(staging, ["stageCount", "StageCount"])),
+				canStage: Boolean(pick(staging, ["canStage", "CanStage"])),
+				prelaunch: Boolean(pick(staging, ["prelaunch", "Prelaunch"])),
+				label: pick(staging, ["label", "Label"]),
+				situation: pick(staging, ["situation", "Situation"])
+			},
+			orbit: {
+				available: Boolean(pick(orbit, ["available", "Available"])),
+				body: pick(orbit, ["body", "Body"]),
+				apoapsis: readNumber(pick(orbit, ["apoapsis", "Apoapsis"])),
+				periapsis: readNumber(pick(orbit, ["periapsis", "Periapsis"])),
+				altitude: readNumber(pick(orbit, ["altitude", "Altitude"])),
+				inclination: readNumber(pick(orbit, ["inclination", "Inclination"])),
+				eccentricity: readNumber(pick(orbit, ["eccentricity", "Eccentricity"])),
+				period: readNumber(pick(orbit, ["period", "Period"])),
+				timeToApoapsis: readNumber(pick(orbit, ["timeToApoapsis", "TimeToApoapsis"])),
+				timeToPeriapsis: readNumber(pick(orbit, ["timeToPeriapsis", "TimeToPeriapsis"])),
+				orbitalSpeed: readNumber(pick(orbit, ["orbitalSpeed", "OrbitalSpeed"])),
+				surfaceSpeed: readNumber(pick(orbit, ["surfaceSpeed", "SurfaceSpeed"])),
+				verticalSpeed: readNumber(pick(orbit, ["verticalSpeed", "VerticalSpeed"])),
+				radarAltitude: readNumber(pick(orbit, ["radarAltitude", "RadarAltitude"]))
+			},
+			resources: snapshot.resources || {},
+			timeWarp: {
+				index: readNumber(pick(warp, ["index", "Index"])),
+				rate: readNumber(pick(warp, ["rate", "Rate"])),
+				maxIndex: readNumber(pick(warp, ["maxIndex", "MaxIndex"])),
+				paused: Boolean(pick(warp, ["paused", "Paused"]))
+			},
+			paused: Boolean(snapshot.paused),
+			deltaV: {
+				available: Boolean(pick(deltaV, ["available", "Available"])),
+				vacuum: readNumber(pick(deltaV, ["vacuum", "Vacuum"])),
+				asl: readNumber(pick(deltaV, ["asl", "Asl", "ASL"])),
+				burnTime: readNumber(pick(deltaV, ["burnTime", "BurnTime"]))
+			},
+			timestamp: readNumber(snapshot.timestamp)
+		};
+	}
+
+	/**
 	 * Turns one field of a /api/state snapshot into a key label, value and unit.
 	 */
 	function formatTelemetry(fieldId, snapshot) {
@@ -226,6 +319,8 @@
 		if (!snapshot) {
 			return result;
 		}
+
+		snapshot = normalizeSnapshot(snapshot);
 
 		if (fieldId && fieldId.indexOf("resource:") === 0) {
 			const name = fieldId.slice("resource:".length);
@@ -277,7 +372,7 @@
 				result.value = formatDuration(orbit.timeToPeriapsis);
 				break;
 			case "deltaV":
-				if (snapshot.deltaV && snapshot.deltaV.available) {
+				if (snapshot.deltaV.available) {
 					result.value = Math.round(Number(snapshot.deltaV.vacuum) || 0).toLocaleString();
 					result.unit = "m/s";
 				}
@@ -286,16 +381,14 @@
 				result.value = formatPercent(snapshot.throttle);
 				break;
 			case "warp":
-				if (snapshot.timeWarp) {
-					result.value = "×" + formatNumber(snapshot.timeWarp.rate, 0);
-					if (snapshot.timeWarp.paused) {
-						result.unit = "paused";
-					}
+				result.value = "×" + formatNumber(snapshot.timeWarp.rate, 0);
+				if (snapshot.timeWarp.paused) {
+					result.unit = "paused";
 				}
 				break;
 			case "stage":
-				if (snapshot.staging) {
-					result.value = String(snapshot.staging.currentStage) + " / " + String(snapshot.staging.stageCount);
+				if (snapshot.staging.currentStage !== null && snapshot.staging.stageCount !== null) {
+					result.value = snapshot.staging.currentStage + " / " + snapshot.staging.stageCount;
 				}
 				break;
 			default:
@@ -320,6 +413,8 @@
 		clamp01: clamp01,
 		isFiniteNumber: isFiniteNumber,
 		readNumber: readNumber,
+		pick: pick,
+		normalizeSnapshot: normalizeSnapshot,
 		formatNumber: formatNumber,
 		formatDistance: formatDistance,
 		formatSpeed: formatSpeed,

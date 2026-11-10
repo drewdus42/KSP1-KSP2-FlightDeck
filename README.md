@@ -72,7 +72,7 @@ so old keys will not light up. Re-add the keys from the new "KSP Flight Control"
 ## Development
 
 ```powershell
-node --test test\util.test.js test\state.test.js test\manifest.test.js   # 23 tests
+node --test test\util.test.js test\snapshot.test.js test\state.test.js test\manifest.test.js   # 28 tests
 .\DistributionTool.exe -b -i "src\com.novistrum.kspflightcontrol.sdPlugin" -o "Release"
 ```
 
@@ -90,7 +90,10 @@ node test\live-check.js
 `test/manifest.test.js` validates the manifest against the files on disk: every action UUID is
 namespaced and unique, every icon/state/layout/inspector exists, layouts contain the keys the code
 expects, and `app.html` loads scripts in dependency order. `test/state.test.js` starts a fake mod
-server and exercises the real HTTP client and polling hub.
+server and exercises the real HTTP client and polling hub. `test/snapshot.test.js` runs against
+`test/fixtures/snapshot.json`, which is captured from the real mod, so a change in the mod's wire
+format (for example `CurrentStage` vs `currentStage`) fails the suite instead of showing up as a
+blank key.
 
 Source layout:
 

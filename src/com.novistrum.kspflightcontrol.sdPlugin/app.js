@@ -26,6 +26,7 @@ const renderer = KspImages.createRenderer($SD);
 /** context -> { kind, context, settings, optimisticThrottle, releaseTimer } */
 const contexts = new Map();
 let hubSubscription = null;
+let latestSnapshot = null;
 let pendingThrottle = null;
 let throttleTimer = null;
 let throttleInFlight = false;
@@ -49,9 +50,14 @@ function entryFor(context) {
 function ensurePolling() {
 	if (!hubSubscription) {
 		hubSubscription = hub.subscribe(function (snapshot, status, error) {
-			renderAll(snapshot, status, error);
+			latestSnapshot = KspUtil.normalizeSnapshot(snapshot);
+			renderAll(latestSnapshot, status, error);
 		});
 	}
+}
+
+function snapshot() {
+	return latestSnapshot;
 }
 
 function releasePollingWhenIdle() {
@@ -69,7 +75,7 @@ function addContext(context, kind, payload) {
 	contexts.set(context, entry);
 	renderer.forget(context);
 	ensurePolling();
-	renderEntry(entry, hub.getSnapshot(), hub.getStatus(), hub.getError());
+	renderEntry(entry, snapshot(), hub.getStatus(), hub.getError());
 
 	if (!payload || !payload.settings) {
 		$SD.getSettings(context);
@@ -292,7 +298,7 @@ async function safeSend(context, action, parameters) {
 
 function setThrottle(entry, value) {
 	entry.optimisticThrottle = KspUtil.clamp01(value);
-	renderThrust(entry, hub.getSnapshot(), hub.getStatus());
+	renderThrust(entry, snapshot(), hub.getStatus());
 
 	pendingThrottle = entry.optimisticThrottle;
 	if (!throttleTimer && !throttleInFlight) {
@@ -348,7 +354,7 @@ ActionGroupToggle.onDidReceiveSettings(function (jsn) {
 		return;
 	}
 	entry.settings = (jsn.payload && jsn.payload.settings) || {};
-	renderEntry(entry, hub.getSnapshot(), hub.getStatus(), hub.getError());
+	renderEntry(entry, snapshot(), hub.getStatus(), hub.getError());
 });
 
 ActionGroupToggle.onKeyUp(function (jsn) {
@@ -404,7 +410,7 @@ SasAction.onDidReceiveSettings(function (jsn) {
 		return;
 	}
 	entry.settings = (jsn.payload && jsn.payload.settings) || {};
-	renderEntry(entry, hub.getSnapshot(), hub.getStatus(), hub.getError());
+	renderEntry(entry, snapshot(), hub.getStatus(), hub.getError());
 });
 
 SasAction.onKeyUp(function (jsn) {
@@ -414,8 +420,8 @@ SasAction.onKeyUp(function (jsn) {
 	}
 
 	const desired = entry.settings.mode || "StabilityAssist";
-	const snapshot = hub.getSnapshot();
-	const sas = snapshot ? snapshot.sas : null;
+	const state = snapshot();
+	const sas = state ? state.sas : null;
 	const engagedHere = Boolean(sas && sas.enabled && sas.mode === desired);
 	const parameters = engagedHere ? { Enabled: false } : { Enabled: true, Mode: desired };
 
@@ -444,7 +450,7 @@ TelemetryAction.onDidReceiveSettings(function (jsn) {
 		return;
 	}
 	entry.settings = (jsn.payload && jsn.payload.settings) || {};
-	renderEntry(entry, hub.getSnapshot(), hub.getStatus(), hub.getError());
+	renderEntry(entry, snapshot(), hub.getStatus(), hub.getError());
 });
 
 TelemetryAction.onKeyUp(function (jsn) {
@@ -496,16 +502,16 @@ ThrustDial.onDialRotate(function (jsn) {
 		return;
 	}
 
-	const snapshot = hub.getSnapshot();
-	const current = entry.optimisticThrottle !== null && entry.optimisticThrottle !== undefined
+	const state = snapshot();
+	const currentThrottle = entry.optimisticThrottle !== null && entry.optimisticThrottle !== undefined
 		? entry.optimisticThrottle
-		: snapshot
-			? snapshot.throttle
+		: state
+			? state.throttle
 			: 0;
 
 	// Big flicks jump 5%, gentle nudges move 1% for fine trim.
 	const step = Math.abs(ticks) > 1 ? 0.05 : 0.01;
-	setThrottle(entry, Math.round(KspUtil.clamp01(current + ticks * step) * 100) / 100);
+	setThrottle(entry, Math.round(KspUtil.clamp01(currentThrottle + ticks * step) * 100) / 100);
 });
 
 ThrustDial.onDialPress(function (jsn) {
@@ -542,9 +548,9 @@ TimeWarpDial.onDialRotate(function (jsn) {
 		return;
 	}
 
-	const snapshot = hub.getSnapshot();
-	const warp = snapshot ? snapshot.timeWarp : null;
-	if (!warp) {
+	const state = snapshot();
+	const warp = state ? state.timeWarp : null;
+	if (!warp || warp.index === null) {
 		$SD.showAlert(jsn.context);
 		return;
 	}

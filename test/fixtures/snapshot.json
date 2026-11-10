@@ -1,0 +1,103 @@
+{
+  "vessel": {
+    "name": "Dev Lander",
+    "situation": "ORBITING",
+    "situationString": "Orbiting Kerbin",
+    "body": "Kerbin",
+    "mass": 12.4,
+    "crew": 3,
+    "landed": false,
+    "splashed": false
+  },
+  "throttle": 0.5,
+  "sas": {
+    "Enabled": true,
+    "Mode": "Prograde",
+    "CanSetMode": true
+  },
+  "actionGroups": {
+    "Abort": false,
+    "Antennas": false,
+    "Brakes": false,
+    "Custom01": false,
+    "Custom02": false,
+    "Custom03": false,
+    "Custom04": false,
+    "Custom05": false,
+    "Custom06": false,
+    "Custom07": false,
+    "Custom08": false,
+    "Custom09": false,
+    "Custom10": false,
+    "Gear": false,
+    "Lights": false,
+    "RCS": false,
+    "RadiatorPanels": false,
+    "SAS": true,
+    "Science": true,
+    "SolarPanels": true
+  },
+  "staging": {
+    "CurrentStage": 4,
+    "StageCount": 6,
+    "CanStage": true,
+    "Prelaunch": false,
+    "Label": "Stage",
+    "Situation": "ORBITING"
+  },
+  "orbit": {
+    "available": true,
+    "body": "Kerbin",
+    "apoapsis": 120000,
+    "periapsis": 79000,
+    "altitude": 91988,
+    "radius": 691988,
+    "inclination": 0.7853981633974483,
+    "eccentricity": 0.0123,
+    "period": 3600,
+    "timeToApoapsis": 900,
+    "timeToPeriapsis": 1800,
+    "orbitalSpeed": 2280.4,
+    "surfaceSpeed": 2281.2,
+    "verticalSpeed": -3.1,
+    "radarAltitude": 90778,
+    "semiMajorAxis": 691988,
+    "atmosphereDepth": 70000
+  },
+  "resources": {
+    "LiquidFuel": {
+      "amount": 303.31400000000906,
+      "max": 800,
+      "fraction": 0.3791425000000113
+    },
+    "Oxidizer": {
+      "amount": 369.9768000000023,
+      "max": 980,
+      "fraction": 0.3775273469387779
+    },
+    "ElectricCharge": {
+      "amount": 521.5499999999917,
+      "max": 1000,
+      "fraction": 0.5215499999999916
+    },
+    "MonoPropellant": {
+      "amount": 40,
+      "max": 120,
+      "fraction": 0.3333333333333333
+    }
+  },
+  "timeWarp": {
+    "Index": 0,
+    "Rate": 1,
+    "MaxIndex": 8,
+    "Paused": false
+  },
+  "paused": false,
+  "deltaV": {
+    "available": true,
+    "vacuum": 3456.7,
+    "asl": 2980.1,
+    "burnTime": 212.4
+  },
+  "timestamp": 123501.75000000266
+}
