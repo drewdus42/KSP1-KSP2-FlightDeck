@@ -23,15 +23,21 @@ you edited `settings.cfg` in the mod.
 | Action | Controls | Notes |
 | --- | --- | --- |
 | **Action Group** | any KSP action group | Icon reflects the real group state. Includes virtual groups: solar panels, radiators, antennas and science |
-| **Staging** | launch / next stage | Shows `Launch` on the pad and `Stage` afterwards, with `current / total` stages as the title |
-| **SAS Mode** | SAS + mode | Press enables SAS in the configured mode; press again while that mode is active to switch SAS off. Modes that need a target or maneuver node flash red when KSP refuses |
+| **Staging** | launch / next stage | Uses the `Launch` artwork while nothing has been staged yet and `Next Stage` afterwards, with no extra text on the key |
+| **SAS Mode** | SAS + mode | Your per-mode SAS artwork (filled icon = SAS is holding that mode, outline = idle). Press engages SAS in the configured mode, press again while it is active switches SAS off. Modes that need a target or maneuver node flash red when KSP refuses |
 | **Telemetry** | one live readout | Altitude, radar altitude, apoapsis, periapsis, orbital/surface/vertical speed, inclination, period, time to Ap/Pe, delta-v, throttle, warp, stage, or any resource (fuel, oxidizer, monoprop, EC, …) |
 | **Connection Status** | endpoint settings | Shows `OFFLINE`, `READY` (main menu) or the active vessel, body and situation |
-| **Thrust** (Stream Deck + dial) | throttle | Rotate 1% per tick (5% per fast flick), press → 0%, tap → 100% |
-| **Time Warp** (Stream Deck + dial) | warp + pause | Rotate changes warp index, press toggles pause, tap returns to 1× |
+| **Thrust** (Stream Deck + dial) | throttle | Your `Thrust_Static` touch-bar art with the percentage and level bar beside it. Rotate 1% per tick (5% per fast flick), press → 0%, tap → 100% |
+| **Time Warp** (Stream Deck + dial) | warp + pause | Your `TimeWarp_Static` touch-bar art with the multiplier (`×1` … `×100k`) and warp bar. Rotate changes warp index, press toggles pause, tap returns to 1× |
 
 Every key falls back to a canvas-drawn tile when an asset is missing (for example there is no
-antenna artwork), so new action groups still look intentional.
+maneuver-node SAS drawing), so new action groups still look intentional.
+
+Artwork comes from the original plugin: `Buttons/ActionGroup/{True,False}` for action groups,
+`Buttons/SAS/SAS Modes Unlabelled` for SAS modes (the key captions the mode itself, so the label is
+never baked into the art), `Buttons/Other` for staging and the shared panel (`Blank3`), and
+`Buttons/TouchBar` for the two dials. `@2x` PNG companions are generated for the raster images the
+manifest references, because the packager requires them.
 
 ## Property inspector settings
 
@@ -72,7 +78,7 @@ so old keys will not light up. Re-add the keys from the new "KSP Flight Control"
 ## Development
 
 ```powershell
-node --test test\util.test.js test\snapshot.test.js test\state.test.js test\manifest.test.js   # 28 tests
+node --test test\util.test.js test\snapshot.test.js test\state.test.js test\manifest.test.js test\art.test.js   # 36 tests
 .\DistributionTool.exe -b -i "src\com.novistrum.kspflightcontrol.sdPlugin" -o "Release"
 ```
 

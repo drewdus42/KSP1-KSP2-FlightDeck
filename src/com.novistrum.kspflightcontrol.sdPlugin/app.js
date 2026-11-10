@@ -190,14 +190,12 @@ function renderSas(entry, snapshot, status) {
 
 	const artwork = KspUtil.sasImage(desired, engagedHere);
 	if (artwork) {
+		// Unlabelled artwork: caption it ourselves so the key still names the mode.
 		renderer.key(entry.context, {
-			image: artwork,
-			title: "",
-			label: KspUtil.sasModeLabel(desired),
-			value: engagedHere ? "ON" : "OFF",
-			unit: sas ? (engagedHere ? "" : enabled ? "SAS: " + KspUtil.sasBadge(activeMode) : "") : offlineHint(status),
-			accent: engagedHere ? "#22c55e" : "#64748b",
-			valueSize: 30
+			backgroundImage: artwork,
+			label: KspUtil.sasModeLabel(desired).toUpperCase(),
+			labelAtBottom: true,
+			accent: engagedHere ? "#22c55e" : "#64748b"
 		});
 		return;
 	}
@@ -275,12 +273,15 @@ function renderThrust(entry, snapshot, status) {
 			? snapshot.throttle
 			: 0;
 	const percent = Math.round(KspUtil.clamp01(throttle) * 100);
+	const value = status !== "flight" ? KspUtil.DASH : percent + "%";
 
+	// The touch strip artwork (Thrust_Static) already spells THRUST, so only the
+	// value and the bar are sent; title stays empty to avoid doubled-up text.
 	renderer.feedback(entry.context, {
-		title: status === "flight" ? "THRUST" : status === "menu" ? "NO VESSEL" : "OFFLINE",
-		value: percent + "%",
-		indicator: { value: percent }
-	}, "thrust|" + percent + "|" + status);
+		title: "",
+		value: value,
+		indicator: { value: status === "flight" ? percent : 0 }
+	}, "thrust|" + value + "|" + status);
 }
 
 function renderTimeWarp(entry, snapshot, status) {
@@ -290,12 +291,13 @@ function renderTimeWarp(entry, snapshot, status) {
 	const maxIndex = warp ? Math.max(1, warp.maxIndex) : 1;
 	const paused = warp ? Boolean(warp.paused) : false;
 	const percent = Math.round((index / maxIndex) * 100);
+	const value = status !== "flight" ? KspUtil.DASH : paused ? "II" : KspUtil.formatWarpRate(rate);
 
 	renderer.feedback(entry.context, {
-		title: paused ? "PAUSED" : "TIME WARP",
-		value: "×" + KspUtil.formatNumber(rate, 0),
-		indicator: { value: percent }
-	}, "warp|" + index + "|" + rate + "|" + paused + "|" + status);
+		title: paused ? "PAUSED" : "",
+		value: value,
+		indicator: { value: status === "flight" ? percent : 0 }
+	}, "warp|" + value + "|" + index + "|" + rate + "|" + paused + "|" + status);
 }
 
 async function safeSend(context, action, parameters) {

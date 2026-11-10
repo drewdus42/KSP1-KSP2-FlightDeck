@@ -18,6 +18,17 @@ test("formatDistance scales units", () => {
 	assert.equal(util.formatDistance(NaN), util.DASH);
 });
 
+test("formatWarpRate keeps the dial value short", () => {
+	assert.equal(util.formatWarpRate(1), "×1");
+	assert.equal(util.formatWarpRate(4), "×4");
+	assert.equal(util.formatWarpRate(500), "×500");
+	assert.equal(util.formatWarpRate(1000), "×1k");
+	assert.equal(util.formatWarpRate(10000), "×10k");
+	assert.equal(util.formatWarpRate(100000), "×100k");
+	assert.equal(util.formatWarpRate(null), util.DASH);
+	assert.ok(util.formatWarpRate(100000).length <= 5);
+});
+
 test("formatDuration renders clock strings", () => {
 	assert.equal(util.formatDuration(0), "00:00:00");
 	assert.equal(util.formatDuration(3725), "01:02:05");

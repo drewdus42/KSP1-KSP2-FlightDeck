@@ -51,12 +51,13 @@ test("SAS artwork covers every KSP mode except the ones without drawings", () =>
 	assert.equal(util.sasImage("Unknown", true), null);
 });
 
-test("SAS artwork files are the labelled set the user maintains", () => {
+test("SAS artwork files are the unlabelled set the user maintains", () => {
 	const mode = util.sasImage("Prograde", true);
-	assert.equal(mode, "Buttons/SAS/SAS Modes Labelled/SASpgOn.jpg");
-	assert.equal(util.sasImage("StabilityAssist", false), "Buttons/SAS/SAS Modes Labelled/SASlockOff.jpg");
-	assert.equal(util.sasImage("Target", true), "Buttons/SAS/SAS Modes Labelled/SASupOn.jpg");
-	assert.equal(util.sasImage("AntiTarget", false), "Buttons/SAS/SAS Modes Labelled/SASdownOff.jpg");
+	assert.equal(mode, "Buttons/SAS/SAS Modes Unlabelled/SASpgOn.jpg");
+	assert.equal(util.sasImage("StabilityAssist", false), "Buttons/SAS/SAS Modes Unlabelled/SASlockOff.jpg");
+	assert.equal(util.sasImage("Target", true), "Buttons/SAS/SAS Modes Unlabelled/SASupOn.jpg");
+	assert.equal(util.sasImage("AntiTarget", false), "Buttons/SAS/SAS Modes Unlabelled/SASdownOff.jpg");
+	assert.ok(!mode.includes("Labelled"), "the plugin must caption unlabelled art, not use baked-in text");
 });
 
 test("shared panel and staging artwork exist", () => {
@@ -64,6 +65,22 @@ test("shared panel and staging artwork exist", () => {
 	assert.ok(assetExists(util.ASSETS.launch), util.ASSETS.launch);
 	assert.ok(assetExists(util.ASSETS.stage), util.ASSETS.stage);
 	assert.ok(assetExists(util.ASSETS.serverDown), util.ASSETS.serverDown);
+});
+
+test("dial layouts use the touch bar artwork", () => {
+	const expected = {
+		"thrustLayout.json": "Buttons/TouchBar/Thrust_Static.jpg",
+		"timeWarpLayout.json": "Buttons/TouchBar/TimeWarp_Static.jpg"
+	};
+
+	for (const file of Object.keys(expected)) {
+		const layout = JSON.parse(fs.readFileSync(path.join(pluginRoot, "Layouts", file), "utf8"));
+		const pixmap = layout.items.filter((item) => item.type === "pixmap")[0];
+		assert.ok(pixmap, file + " has no pixmap");
+		assert.equal(pixmap.value, expected[file]);
+		assert.ok(assetExists(pixmap.value), "missing " + pixmap.value);
+		assert.ok(assetExists(pixmap.value.replace(/\.(jpg|png)$/i, "@2x.png")), "missing @2x for " + pixmap.value);
+	}
 });
 
 test("manifest icons and encoder art point at existing files", () => {

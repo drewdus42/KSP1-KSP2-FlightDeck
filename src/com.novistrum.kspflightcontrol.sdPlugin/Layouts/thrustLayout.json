@@ -4,18 +4,18 @@
     {
       "key": "icon",
       "type": "pixmap",
-      "value": "Buttons/TouchBar/Thrust.svg",
+      "value": "Buttons/TouchBar/Thrust_Static.jpg",
       "zOrder": 0,
       "enabled": true,
-      "rect": [0, 0, 200, 100]
+      "rect": [4, 14, 132, 66]
     },
     {
       "key": "title",
       "type": "text",
       "zOrder": 1,
       "enabled": true,
-      "rect": [12, 8, 176, 26],
-      "font": { "size": 16, "weight": 600 },
+      "rect": [4, 2, 132, 12],
+      "font": { "size": 10, "weight": 600 },
       "alignment": "left"
     },
     {
@@ -23,8 +23,8 @@
       "type": "text",
       "zOrder": 2,
       "enabled": true,
-      "rect": [110, 36, 78, 40],
-      "font": { "size": 24, "weight": 700 },
+      "rect": [140, 22, 56, 38],
+      "font": { "size": 20, "weight": 700 },
       "alignment": "right"
     },
     {
@@ -32,10 +32,10 @@
       "type": "gbar",
       "zOrder": 3,
       "enabled": true,
-      "rect": [25, 65, 150, 40],
+      "rect": [140, 68, 56, 14],
       "value": 0,
       "subtype": 4,
-      "bar_h": 20,
+      "bar_h": 10,
       "border_w": 0,
       "bar_bg_c": "0:#ef4444,0.4:#f59e0b,1:#22c55e",
       "range": {

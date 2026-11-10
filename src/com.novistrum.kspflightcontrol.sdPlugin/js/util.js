@@ -59,7 +59,7 @@
 	const ASSETS = {
 		groupOff: "Buttons/ActionGroup/False/",
 		groupOn: "Buttons/ActionGroup/True/",
-		sas: "Buttons/SAS/SAS Modes Labelled/",
+		sas: "Buttons/SAS/SAS Modes Unlabelled/",
 		launch: "Buttons/Other/Launch.jpg",
 		stage: "Buttons/Other/Stage.jpg",
 		panel: "Buttons/Other/Blank3.jpg",
@@ -188,6 +188,21 @@
 			return DASH;
 		}
 		return Math.round(value * 100) + "%";
+	}
+
+	/** Compact warp multiplier that fits the touch strip: ×1 … ×100k. */
+	function formatWarpRate(rate) {
+		const value = readNumber(rate);
+		if (value === null) {
+			return DASH;
+		}
+		if (value >= 1000000) {
+			return "×" + formatNumber(value / 1000000, 1) + "M";
+		}
+		if (value >= 1000) {
+			return "×" + formatNumber(value / 1000, value % 1000 === 0 ? 0 : 1) + "k";
+		}
+		return "×" + formatNumber(value, 0);
 	}
 
 	function prettyGroupName(name) {
@@ -459,6 +474,7 @@
 		formatSpeed: formatSpeed,
 		formatDuration: formatDuration,
 		formatPercent: formatPercent,
+		formatWarpRate: formatWarpRate,
 		prettyGroupName: prettyGroupName,
 		sasBadge: sasBadge,
 		sasModeLabel: sasModeLabel,

@@ -103,7 +103,7 @@
 			},
 			"States": [
 				{
-					"Image": "Buttons/TouchBar/ThrustIcon.svg"
+					"Image": "Buttons/TouchBar/ThrustButton.svg"
 				}
 			],
 			"Tooltip": "Control the throttle of the active vessel",
@@ -111,12 +111,12 @@
 			"PropertyInspectorPath": "actions/template/property-inspector/thrust-inspector.html"
 		},
 		{
-			"Icon": "actions/template/assets/stage",
+			"Icon": "Buttons/TouchBar/TimeWarp_Static.png",
 			"Name": "Time Warp",
 			"Controllers": ["Encoder"],
 			"Encoder": {
 				"layout": "Layouts/timeWarpLayout.json",
-				"Icon": "actions/template/assets/stage",
+				"Icon": "Buttons/TouchBar/TimeWarp_Static.png",
 				"StackColor": "#a855f7",
 				"TriggerDescription": {
 					"Rotate": "Change time warp rate",
@@ -126,7 +126,7 @@
 			},
 			"States": [
 				{
-					"Image": "actions/template/assets/stage"
+					"Image": "Buttons/TouchBar/TimeWarp_Static.png"
 				}
 			],
 			"Tooltip": "Change time warp and pause the game",

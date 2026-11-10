@@ -121,7 +121,8 @@
 			tile.background || "",
 			tile.badge || "",
 			tile.badgeColor || "",
-			tile.valueSize || ""
+			tile.valueSize || "",
+			tile.labelAtBottom ? "bottom" : "top"
 		].join("|");
 	}
 
@@ -175,24 +176,39 @@
 		context.textAlign = "center";
 		context.textBaseline = "middle";
 
-		context.fillStyle = "#c3d0de";
-		if (tile.badge) {
-			context.textAlign = "left";
-			context.font = "600 15px " + FONT;
-			context.fillText(tile.label || "", 14, 38, TILE_SIZE - 64);
-			context.textAlign = "center";
+		if (tile.labelAtBottom) {
+			// Artwork without baked-in text: caption it along the bottom edge.
+			const bandHeight = 30;
+			const bandTop = TILE_SIZE - bandHeight;
+			const gradient = context.createLinearGradient(0, bandTop - 8, 0, TILE_SIZE);
+			gradient.addColorStop(0, "rgba(6, 10, 16, 0)");
+			gradient.addColorStop(1, "rgba(6, 10, 16, 0.92)");
+			context.fillStyle = gradient;
+			context.fillRect(0, bandTop - 8, TILE_SIZE, bandHeight + 8);
+
+			context.fillStyle = "#e8eef5";
+			context.font = "700 16px " + FONT;
+			context.fillText(tile.label || "", TILE_SIZE / 2, bandTop + bandHeight / 2, TILE_SIZE - 16);
 		} else {
-			context.font = "600 17px " + FONT;
-			context.fillText(tile.label || "", TILE_SIZE / 2, 38, TILE_SIZE - 22);
+			context.fillStyle = "#c3d0de";
+			if (tile.badge) {
+				context.textAlign = "left";
+				context.font = "600 15px " + FONT;
+				context.fillText(tile.label || "", 14, 38, TILE_SIZE - 64);
+				context.textAlign = "center";
+			} else {
+				context.font = "600 17px " + FONT;
+				context.fillText(tile.label || "", TILE_SIZE / 2, 38, TILE_SIZE - 22);
+			}
+
+			context.fillStyle = tile.color || "#ffffff";
+			context.font = "700 " + (tile.valueSize || 38) + "px " + FONT;
+			context.fillText(tile.value || "", TILE_SIZE / 2, 78, TILE_SIZE - 18);
+
+			context.fillStyle = "#a9b8c8";
+			context.font = "500 17px " + FONT;
+			context.fillText(tile.unit || "", TILE_SIZE / 2, 116, TILE_SIZE - 22);
 		}
-
-		context.fillStyle = tile.color || "#ffffff";
-		context.font = "700 " + (tile.valueSize || 38) + "px " + FONT;
-		context.fillText(tile.value || "", TILE_SIZE / 2, 78, TILE_SIZE - 18);
-
-		context.fillStyle = "#a9b8c8";
-		context.font = "500 17px " + FONT;
-		context.fillText(tile.unit || "", TILE_SIZE / 2, 116, TILE_SIZE - 22);
 
 		if (tile.badge) {
 			context.fillStyle = tile.badgeColor || "#f59e0b";
@@ -231,7 +247,8 @@
 				backgroundPath: value.backgroundImage,
 				badge: value.badge,
 				badgeColor: value.badgeColor,
-				valueSize: value.valueSize
+				valueSize: value.valueSize,
+				labelAtBottom: value.labelAtBottom
 			};
 
 			const signature = "tile|" + tileSignature(tile);
