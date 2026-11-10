@@ -24,7 +24,7 @@ you edited `settings.cfg` in the mod.
 | --- | --- | --- |
 | **Action Group** | any KSP action group | Icon reflects the real group state. Includes virtual groups: solar panels, radiators, antennas and science |
 | **Staging** | launch / next stage | Uses the `Launch` artwork while nothing has been staged yet and `Next Stage` afterwards, with no extra text on the key |
-| **SAS Mode** | SAS + mode | Your per-mode SAS artwork (filled icon = SAS is holding that mode, outline = idle). Press engages SAS in the configured mode, press again while it is active switches SAS off. Modes that need a target or maneuver node flash red when KSP refuses |
+| **SAS Mode** | SAS + mode | Your per-mode SAS artwork only (filled icon = SAS is holding that mode, outline = idle). Press engages SAS in the configured mode, press again while it is active switches SAS off. Modes that need a target or maneuver node flash red when KSP refuses |
 | **Telemetry** | one live readout | Altitude, radar altitude, apoapsis, periapsis, orbital/surface/vertical speed, inclination, period, time to Ap/Pe, delta-v, throttle, warp, stage, or any resource (fuel, oxidizer, monoprop, EC, …) |
 | **Connection Status** | endpoint settings | Shows `OFFLINE`, `READY` (main menu) or the active vessel, body and situation |
 | **Thrust** (Stream Deck + dial) | throttle | Your `Thrust_Static` touch-bar art with the percentage and level bar beside it. Rotate 1% per tick (5% per fast flick), press → 0%, tap → 100% |
@@ -34,10 +34,10 @@ Every key falls back to a canvas-drawn tile when an asset is missing (for exampl
 maneuver-node SAS drawing), so new action groups still look intentional.
 
 Artwork comes from the original plugin: `Buttons/ActionGroup/{True,False}` for action groups,
-`Buttons/SAS/SAS Modes Unlabelled` for SAS modes (the key captions the mode itself, so the label is
-never baked into the art), `Buttons/Other` for staging and the shared panel (`Blank3`), and
-`Buttons/TouchBar` for the two dials. `@2x` PNG companions are generated for the raster images the
-manifest references, because the packager requires them.
+`Buttons/SAS/SAS Modes Unlabelled` for SAS modes (shown as pure artwork — no text is added to those
+keys), `Buttons/Other` for staging and the shared panel (`Blank3`), and `Buttons/TouchBar` for the
+two dials. `@2x` PNG companions are generated for the raster images the manifest references,
+because the packager requires them.
 
 ## Property inspector settings
 
