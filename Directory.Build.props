@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <!-- Override with: dotnet build -p:KspDir="D:\Steam\steamapps\common\Kerbal Space Program" -->
+    <KspDir Condition="'$(KspDir)' == '' AND '$(KSPDIR)' != ''">$(KSPDIR)</KspDir>
+    <KspDir Condition="'$(KspDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program</KspDir>
+    <KspManagedDir>$(KspDir)\KSP_x64_Data\Managed</KspManagedDir>
+
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+</Project>
