@@ -1,0 +1,15 @@
+{
+  "spec": "2.0",
+  "mod_id": "KSPFlightDeck2",
+  "name": "KSP Flight Deck",
+  "author": "Novistrum",
+  "description": "Local HTTP control API (throttle, action groups, SAS, staging, time warp, telemetry) for the Stream Deck KSP Flight Control plugin.",
+  "source": "https://github.com/drewdus42/streamdeck-ksp2-flight-control-main",
+  "version": "1.0.0",
+  "dependencies": [],
+  "ksp2_version": {
+    "min": "0.2.0.0",
+    "max": "0.2.99.0"
+  },
+  "main_assembly": "KSPFlightDeck2.dll"
+}

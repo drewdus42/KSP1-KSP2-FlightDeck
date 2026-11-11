@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <RootNamespace>FlightDeck.Ksp2</RootNamespace>
+    <AssemblyName>KSPFlightDeck2</AssemblyName>
+    <Version>1.0.0</Version>
+    <Description>Local HTTP control API for Kerbal Space Program 2 (SpaceWarp plugin) used by the Stream Deck flight control plugin.</Description>
+    <OutputPath>..\..\dist\mods\KSPFlightDeck2\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <DebugType>portable</DebugType>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <!-- Unity's C# is older than the SDK default; keep the language level conservative. -->
+    <LangVersion>9.0</LangVersion>
+    <NoWarn>$(NoWarn);CS0649;MSB3277</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      The protocol layer is compiled straight into this assembly instead of shipping a second
+      dll: SpaceWarp resolves mod assemblies from the game's Managed folder, not from the mod
+      folder, so a sibling dependency would fail to load at startup.
+    -->
+    <Compile Include="..\FlightDeck.Core\*.cs">
+      <Link>Core\%(Filename)%(Extension)</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(Ksp2ManagedDir)\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>$(Ksp2ManagedDir)\Assembly-CSharp-firstpass.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SpaceWarp2">
+      <HintPath>$(Ksp2ManagedDir)\SpaceWarp2.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="KSPLogging">
+      <HintPath>$(Ksp2ManagedDir)\KSPLogging.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(Ksp2ManagedDir)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>$(Ksp2ManagedDir)\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="VerifyKsp2Install" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(Ksp2ManagedDir)\Assembly-CSharp.dll')"
+           Text="KSP 2 assemblies were not found in '$(Ksp2ManagedDir)'. Point the build at your install with: dotnet build -p:Ksp2Dir=&quot;D:\path\to\Kerbal Space Program 2&quot;" />
+    <Error Condition="!Exists('$(Ksp2ManagedDir)\SpaceWarp2.dll')"
+           Text="SpaceWarp2.dll is missing from '$(Ksp2ManagedDir)'. KSP 2 0.2.x (including Redux) ships it; check that the install is complete." />
+  </Target>
+
+</Project>

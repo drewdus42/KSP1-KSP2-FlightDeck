@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FlightDeck.Core/FlightDeck.Core.csproj" />
+    <Project Path="src/KSP2FlightDeck/KSP2FlightDeck.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FlightDeck.Core.Tests/FlightDeck.Core.Tests.csproj" />
+    <Project Path="tests/FlightDeck.DevHost/FlightDeck.DevHost.csproj" />
+  </Folder>
+</Solution>
