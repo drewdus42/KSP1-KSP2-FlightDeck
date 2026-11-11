@@ -5,6 +5,10 @@
 let currentSettings = { field: "altitude" };
 let endpoint = { host: "127.0.0.1", port: 8080 };
 
+// Resource names are remembered across sessions, so a resource readout stays selectable while
+// KSP sits in the main menu (the mod only reports resources once a vessel is loaded).
+let knownResources = [];
+
 $PI.onConnected(function (jsn) {
     const settings = (jsn && jsn.actionInfo && jsn.actionInfo.payload && jsn.actionInfo.payload.settings) || {};
     currentSettings = settings;
@@ -16,6 +20,9 @@ $PI.onDidReceiveGlobalSettings(function (jsn) {
     const settings = (jsn && jsn.payload && jsn.payload.settings) || {};
     endpoint.host = settings.host || "127.0.0.1";
     endpoint.port = Number(settings.port) || 8080;
+
+    knownResources = Array.isArray(settings.resourceFields) ? settings.resourceFields.slice() : [];
+    buildOptions(null);
     loadSnapshot();
 });
 
@@ -29,13 +36,32 @@ async function loadSnapshot() {
         snapshot = null;
     }
 
+    if (snapshot && snapshot.resources) {
+        rememberResources(Object.keys(snapshot.resources));
+    }
+
     buildOptions(snapshot);
 
     const hint = document.getElementById("telemetryHint");
     if (hint) {
         hint.textContent = snapshot
             ? "Live values from the active vessel."
-            : "No vessel reported yet — resource readouts appear once you are in flight.";
+            : "No vessel reported yet. Resource readouts stay available here, but only show values in flight.";
+    }
+}
+
+function rememberResources(names) {
+    let changed = false;
+    names.forEach(function (name) {
+        if (knownResources.indexOf(name) === -1) {
+            knownResources.push(name);
+            changed = true;
+        }
+    });
+
+    if (changed) {
+        knownResources.sort();
+        $PI.setGlobalSettings({ host: endpoint.host, port: endpoint.port, resourceFields: knownResources });
     }
 }
 
@@ -46,21 +72,36 @@ function buildOptions(snapshot) {
     }
 
     const fields = KspUtil.telemetryFields(snapshot);
+    const added = {};
+
     const flightGroup = document.createElement("optgroup");
     flightGroup.label = "Flight data";
     const resourceGroup = document.createElement("optgroup");
     resourceGroup.label = "Resources";
 
-    fields.forEach(function (field) {
-        const option = document.createElement("option");
-        option.value = field.id;
-        option.textContent = field.label;
-        if (field.id.indexOf("resource:") === 0) {
-            resourceGroup.appendChild(option);
-        } else {
-            flightGroup.appendChild(option);
+    function addOption(id, text, isResource) {
+        if (added[id]) {
+            return;
         }
+        added[id] = true;
+        const option = document.createElement("option");
+        option.value = id;
+        option.textContent = text;
+        (isResource ? resourceGroup : flightGroup).appendChild(option);
+    }
+
+    fields.forEach(function (field) {
+        addOption(field.id, field.label, field.id.indexOf("resource:") === 0);
     });
+
+    knownResources.forEach(function (name) {
+        const id = "resource:" + name;
+        addOption(id, KspUtil.telemetryFieldLabel(id) + (snapshot ? "" : " (in flight only)"), true);
+    });
+
+    // Never drop the field that is already configured, even if the vessel lacks it.
+    const desired = currentSettings.field || "altitude";
+    addOption(desired, KspUtil.telemetryFieldLabel(desired), desired.indexOf("resource:") === 0);
 
     select.innerHTML = "";
     select.appendChild(flightGroup);
@@ -68,11 +109,7 @@ function buildOptions(snapshot) {
         select.appendChild(resourceGroup);
     }
 
-    const desired = currentSettings.field || "altitude";
     select.value = desired;
-    if (select.value !== desired) {
-        select.value = "altitude";
-    }
 }
 
 function updateField() {

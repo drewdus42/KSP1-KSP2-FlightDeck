@@ -456,6 +456,18 @@
 		return (state ? ASSETS.groupOn : ASSETS.groupOff) + group + ".png";
 	}
 
+	/**
+	 * Parameters for one press of an SAS key.
+	 * A press toggles: if SAS is already holding this key's mode, switch SAS off;
+	 * otherwise engage SAS in this mode (mode and enable together, because KSP's
+	 * Enable() on its own reverts to Stability Assist).
+	 */
+	function sasPressParameters(sas, desiredMode) {
+		const mode = desiredMode || "StabilityAssist";
+		const engagedHere = Boolean(sas && sas.enabled && sas.mode === mode);
+		return engagedHere ? { Enabled: false } : { Enabled: true, Mode: mode };
+	}
+
 	return {
 		DASH: DASH,
 		TELEMETRY_FIELDS: TELEMETRY_FIELDS,
@@ -481,6 +493,7 @@
 		telemetryFields: telemetryFields,
 		telemetryFieldLabel: telemetryFieldLabel,
 		formatTelemetry: formatTelemetry,
-		actionGroupImage: actionGroupImage
+		actionGroupImage: actionGroupImage,
+		sasPressParameters: sasPressParameters
 	};
 });

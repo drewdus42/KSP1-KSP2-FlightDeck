@@ -441,9 +441,7 @@ SasAction.onKeyUp(function (jsn) {
 
 	const desired = entry.settings.mode || "StabilityAssist";
 	const state = snapshot();
-	const sas = state ? state.sas : null;
-	const engagedHere = Boolean(sas && sas.enabled && sas.mode === desired);
-	const parameters = engagedHere ? { Enabled: false } : { Enabled: true, Mode: desired };
+	const parameters = KspUtil.sasPressParameters(state ? state.sas : null, desired);
 
 	safeSend(jsn.context, "setSas", parameters).then(function (result) {
 		if (result) {

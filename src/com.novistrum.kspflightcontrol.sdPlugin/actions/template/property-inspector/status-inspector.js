@@ -9,10 +9,11 @@ $PI.onConnected(function () {
 
 $PI.onDidReceiveGlobalSettings(function (jsn) {
     const settings = (jsn && jsn.payload && jsn.payload.settings) || {};
-    globalSettings = {
+    // Keep keys other inspectors own (the telemetry inspector stores known resource names).
+    globalSettings = Object.assign({}, settings, {
         host: settings.host || "127.0.0.1",
         port: Number(settings.port) || 8080
-    };
+    });
 
     const hostInput = document.getElementById("hostInput");
     const portInput = document.getElementById("portInput");
@@ -31,7 +32,7 @@ function saveEndpoint() {
     const parsedPort = Number(portInput && portInput.value);
     const port = Math.min(65535, Math.max(1, isFinite(parsedPort) && parsedPort > 0 ? Math.floor(parsedPort) : 8080));
 
-    globalSettings = { host: host, port: port };
+    globalSettings = Object.assign({}, globalSettings, { host: host, port: port });
     $PI.setGlobalSettings(globalSettings);
     setResult("Saved. Press Test connection to verify.", false);
 }

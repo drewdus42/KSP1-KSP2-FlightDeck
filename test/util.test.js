@@ -107,6 +107,23 @@ test("action group image paths follow the asset layout", () => {
 	assert.equal(util.actionGroupImage("None", true), null);
 });
 
+test("sasPressParameters toggles SAS off when it holds this key's mode", () => {
+	const utilSas = { enabled: true, mode: "StabilityAssist" };
+
+	// Regression: pressing a Stability Assist key while SAS is engaged must switch SAS off,
+	// not re-engage it.
+	assert.deepEqual(util.sasPressParameters(utilSas, "StabilityAssist"), { Enabled: false });
+	assert.deepEqual(util.sasPressParameters({ enabled: true, mode: "Prograde" }, "Prograde"), { Enabled: false });
+	assert.deepEqual(util.sasPressParameters({ enabled: true, mode: "AntiTarget" }, "AntiTarget"), { Enabled: false });
+});
+
+test("sasPressParameters engages the key's mode when SAS is idle or in another mode", () => {
+	assert.deepEqual(util.sasPressParameters({ enabled: false, mode: "StabilityAssist" }, "StabilityAssist"), { Enabled: true, Mode: "StabilityAssist" });
+	assert.deepEqual(util.sasPressParameters({ enabled: true, mode: "Prograde" }, "StabilityAssist"), { Enabled: true, Mode: "StabilityAssist" });
+	assert.deepEqual(util.sasPressParameters(null, "Retrograde"), { Enabled: true, Mode: "Retrograde" });
+	assert.deepEqual(util.sasPressParameters(undefined, undefined), { Enabled: true, Mode: "StabilityAssist" });
+});
+
 test("SAS options cover every KSP autopilot mode", () => {
 	assert.deepEqual(
 		util.SAS_MODE_OPTIONS.map((option) => option.id),

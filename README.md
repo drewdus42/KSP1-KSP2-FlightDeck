@@ -13,7 +13,7 @@ and the plugin makes **one request for all keys** instead of one request per but
 2. Double-click `Release/com.novistrum.kspflightcontrol.streamDeckPlugin`, or install it from the
    Stream Deck app (the `Release` build is produced by `DistributionTool.exe`).
 3. Drop the **Connection Status** key on your deck and press *Test connection* in its settings. It
-   should report `Connected: KSPFlightDeck 1.0.0 (main menu)` or `(vessel in flight)`.
+   should report `Connected: KSPFlightDeck 1.0.1 (main menu)` or `(vessel in flight)`.
 
 The default endpoint is `127.0.0.1:8080`. Change it in the Connection Status property inspector if
 you edited `settings.cfg` in the mod.
@@ -25,6 +25,9 @@ you edited `settings.cfg` in the mod.
 | **Action Group** | any KSP action group | Icon reflects the real group state. Includes virtual groups: solar panels, radiators, antennas and science |
 | **Staging** | launch / next stage | Uses the `Launch` artwork while nothing has been staged yet and `Next Stage` afterwards, with no extra text on the key |
 | **SAS Mode** | SAS + mode | Your per-mode SAS artwork only (filled icon = SAS is holding that mode, outline = idle). Press engages SAS in the configured mode, press again while it is active switches SAS off. Modes that need a target or maneuver node flash red when KSP refuses |
+
+Each SAS key is a toggle: pressing it while SAS holds that mode switches SAS off, otherwise it
+engages that mode. Stability Assist behaves the same as every other mode.
 | **Telemetry** | one live readout | Altitude, radar altitude, apoapsis, periapsis, orbital/surface/vertical speed, inclination, period, time to Ap/Pe, delta-v, throttle, warp, stage, or any resource (fuel, oxidizer, monoprop, EC, …) |
 | **Connection Status** | endpoint settings | Shows `OFFLINE`, `READY` (main menu) or the active vessel, body and situation |
 | **Thrust** (Stream Deck + dial) | throttle | Your `Thrust_Static` touch-bar art with the percentage and level bar beside it. Rotate 1% per tick (5% per fast flick), press → 0%, tap → 100% |
@@ -45,7 +48,7 @@ because the packager requires them.
 | --- | --- |
 | Action Group | which group the key toggles |
 | SAS Mode | which autopilot mode the key engages |
-| Telemetry | which readout to show (resource entries appear once the mod reports a vessel) |
+| Telemetry | which readout to show; resource names are remembered across sessions, so a fuel/EC readout stays selectable even while KSP is in the main menu |
 | Connection Status | global mod host/port plus a *Test connection* button |
 | Thrust | static help text; the dial needs no settings |
 
