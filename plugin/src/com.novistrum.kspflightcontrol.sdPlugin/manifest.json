@@ -1,0 +1,136 @@
+{
+	"SDKVersion": 2,
+	"Author": "Novistrum",
+	"Name": "KSP Flight Control",
+	"Description": "Control your Kerbal Space Program 1.12 vessel from a Stream Deck through the KSP Flight Deck mod.",
+	"Version": "2.2.1",
+	"CodePath": "app.html",
+	"Icon": "actions/template/assets/plugin",
+	"URL": "https://github.com/drewdus42/streamdeck-ksp2-flight-control-main",
+	"Software": {
+		"MinimumVersion": "6.0"
+	},
+	"OS": [
+		{
+			"Platform": "windows",
+			"MinimumVersion": "10"
+		},
+		{
+			"Platform": "mac",
+			"MinimumVersion": "10.15"
+		}
+	],
+	"Category": "KSP Flight Control",
+	"CategoryIcon": "actions/template/assets/plugin",
+	"Actions": [
+		{
+			"Icon": "actions/template/assets/action1",
+			"Name": "Action Group",
+			"Controllers": ["Keypad"],
+			"States": [
+				{
+					"Image": "actions/template/assets/action1"
+				}
+			],
+			"Tooltip": "Toggle a KSP action group",
+			"UUID": "com.novistrum.kspflightcontrol.action",
+			"PropertyInspectorPath": "actions/template/property-inspector/ag-inspector.html"
+		},
+		{
+			"Icon": "actions/template/assets/launch",
+			"Name": "Staging",
+			"Controllers": ["Keypad"],
+			"States": [
+				{
+					"Image": "actions/template/assets/launch"
+				}
+			],
+			"Tooltip": "Launch or activate the next stage",
+			"UUID": "com.novistrum.kspflightcontrol.staging"
+		},
+		{
+			"Icon": "actions/template/assets/sasOn",
+			"Name": "SAS Mode",
+			"Controllers": ["Keypad"],
+			"States": [
+				{
+					"Image": "actions/template/assets/sasOn"
+				}
+			],
+			"Tooltip": "Enable SAS in a chosen mode, press again to switch it off",
+			"UUID": "com.novistrum.kspflightcontrol.sas",
+			"PropertyInspectorPath": "actions/template/property-inspector/sas-inspector.html"
+		},
+		{
+			"Icon": "actions/template/assets/actionImage",
+			"Name": "Telemetry",
+			"Controllers": ["Keypad"],
+			"States": [
+				{
+					"Image": "actions/template/assets/actionImage"
+				}
+			],
+			"Tooltip": "Show a live flight readout (altitude, apoapsis, resources, ...)",
+			"UUID": "com.novistrum.kspflightcontrol.telemetry",
+			"PropertyInspectorPath": "actions/template/property-inspector/telemetry-inspector.html"
+		},
+		{
+			"Icon": "actions/template/assets/plugin",
+			"Name": "Connection Status",
+			"Controllers": ["Keypad"],
+			"States": [
+				{
+					"Image": "actions/template/assets/plugin"
+				}
+			],
+			"Tooltip": "Shows the mod connection state and the active vessel",
+			"UUID": "com.novistrum.kspflightcontrol.status",
+			"PropertyInspectorPath": "actions/template/property-inspector/status-inspector.html"
+		},
+		{
+			"Icon": "Buttons/TouchBar/ThrustButton.svg",
+			"Name": "Thrust",
+			"Controllers": ["Encoder"],
+			"Encoder": {
+				"layout": "Layouts/thrustLayout.json",
+				"Icon": "Buttons/TouchBar/ThrustIcon.svg",
+				"StackColor": "#0ea5e9",
+				"TriggerDescription": {
+					"Rotate": "Slow: 1% per tick\nFast: 5% per tick",
+					"Push": "Thrust to 0%",
+					"Touch": "Thrust to 100%"
+				}
+			},
+			"States": [
+				{
+					"Image": "Buttons/TouchBar/ThrustButton.svg"
+				}
+			],
+			"Tooltip": "Control the throttle of the active vessel",
+			"UUID": "com.novistrum.kspflightcontrol.thrust",
+			"PropertyInspectorPath": "actions/template/property-inspector/thrust-inspector.html"
+		},
+		{
+			"Icon": "Buttons/TouchBar/TimeWarp_Static.png",
+			"Name": "Time Warp",
+			"Controllers": ["Encoder"],
+			"Encoder": {
+				"layout": "Layouts/timeWarpLayout.json",
+				"Icon": "Buttons/TouchBar/TimeWarp_Static.png",
+				"StackColor": "#a855f7",
+				"TriggerDescription": {
+					"Rotate": "Change time warp rate",
+					"Push": "Pause / resume",
+					"Touch": "Back to 1x"
+				}
+			},
+			"States": [
+				{
+					"Image": "Buttons/TouchBar/TimeWarp_Static.png"
+				}
+			],
+			"Tooltip": "Change time warp and pause the game",
+			"UUID": "com.novistrum.kspflightcontrol.timewarp"
+		}
+	]
+}

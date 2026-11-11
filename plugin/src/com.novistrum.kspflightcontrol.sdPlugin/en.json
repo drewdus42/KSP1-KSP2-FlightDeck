@@ -1,0 +1,48 @@
+{
+	"Description": "Control Kerbal Space Program 1.12 with your Stream Deck (requires the KSP Flight Deck mod).",
+	"Name": "KSP Flight Control",
+	"Category": "KSP Flight Control",
+	"com.novistrum.kspflightcontrol.action": {
+		"Name": "Action Group",
+		"Tooltip": "Toggle a KSP action group"
+	},
+	"com.novistrum.kspflightcontrol.staging": {
+		"Name": "Staging",
+		"Tooltip": "Launch or activate the next stage"
+	},
+	"com.novistrum.kspflightcontrol.sas": {
+		"Name": "SAS Mode",
+		"Tooltip": "Enable SAS in a chosen mode, press again to switch it off"
+	},
+	"com.novistrum.kspflightcontrol.telemetry": {
+		"Name": "Telemetry",
+		"Tooltip": "Show a live flight readout"
+	},
+	"com.novistrum.kspflightcontrol.status": {
+		"Name": "Connection Status",
+		"Tooltip": "Shows the mod connection state and the active vessel"
+	},
+	"com.novistrum.kspflightcontrol.thrust": {
+		"Name": "Thrust",
+		"Tooltip": "Control the throttle of the active vessel"
+	},
+	"com.novistrum.kspflightcontrol.timewarp": {
+		"Name": "Time Warp",
+		"Tooltip": "Change time warp and pause the game"
+	},
+	"Localization": {
+		"Action Group": "Action Group",
+		"Staging": "Staging",
+		"SAS Mode": "SAS Mode",
+		"Telemetry": "Telemetry",
+		"Connection Status": "Connection Status",
+		"Thrust": "Thrust",
+		"Time Warp": "Time Warp",
+		"Mod host": "Mod host",
+		"Mod port": "Mod port",
+		"Test connection": "Test connection",
+		"Action group": "Action group",
+		"SAS mode": "SAS mode",
+		"Readout": "Readout"
+	}
+}
