@@ -376,12 +376,16 @@ async function safeSend(context, action, parameters) {
 }
 
 /** Short text for a refused SAS press, shown on the key instead of a silent red flash. */
-function sasRefusalText(error, mode, sas) {
+function sasRefusalText(error, mode, sas, vessel) {
 	if (error === "sas_unavailable") {
 		return "no SAS";
 	}
 	if (error === "unreachable") {
 		return "offline";
+	}
+	// KSP 2 has no prograde/normal/radial direction to hold while the vessel sits on the ground.
+	if (vessel && (vessel.landed || vessel.splashed)) {
+		return "on the ground";
 	}
 	if (mode === "Target" || mode === "AntiTarget") {
 		return "needs target";
@@ -545,7 +549,7 @@ SasAction.onKeyUp(function (jsn) {
 
 		// Say why on the key: a refused mode used to look like a press that did nothing.
 		entry.refusal = {
-			text: sasRefusalText(result.error, desired, state ? state.sas : null),
+			text: sasRefusalText(result.error, desired, state ? state.sas : null, state ? state.vessel : null),
 			until: Date.now() + SAS_REFUSAL_TTL_MS
 		};
 		renderEntry(entry, snapshot(), hub.getStatus(), hub.getError());

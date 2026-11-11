@@ -13,7 +13,7 @@ namespace FlightDeck
     [KSPAddon(KSPAddon.Startup.MainMenu, true)]
     public sealed class FlightDeckAddon : MonoBehaviour
     {
-        public const string Version = "1.0.1";
+        public const string Version = "1.0.2";
 
         private QueueDispatcher _dispatcher;
         private HttpServer _server;

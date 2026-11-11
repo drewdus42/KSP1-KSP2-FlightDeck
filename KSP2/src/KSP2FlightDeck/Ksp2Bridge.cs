@@ -351,8 +351,24 @@ namespace FlightDeck.Ksp2
                 { "Enabled", IsSasEnabled(vessel) },
                 { "Mode", mode },
                 { "CanSetMode", canSetMode },
-                { "CanSetModes", CanSetModes(autopilot) }
+                { "CanSetModes", CanSetModes(autopilot) },
+                { "CanEngage", CanEngageSas(autopilot) },
+                { "Controllable", vessel.IsControllable },
+                { "Landed", vessel.Landed },
+                { "Prelaunch", !vessel.HasLaunched || vessel.Situation == VesselSituations.PreLaunch }
             };
+        }
+
+        private static bool CanEngageSas(VesselAutopilot autopilot)
+        {
+            try
+            {
+                return autopilot != null && autopilot.SAS != null && autopilot.SAS.CanEngageSAS();
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         /// <summary>Per-mode availability, so a client can say why a mode is refused.</summary>
@@ -405,7 +421,7 @@ namespace FlightDeck.Ksp2
             {
                 AutopilotMode engageMode = hasMode ? AutopilotModes[mode] : autopilot.AutopilotMode;
                 Ksp2Log.Info("SAS on request mode=" + engageMode + " canSetMode=" + SafeCanSetMode(autopilot, engageMode));
-                EngageSas(autopilot, engageMode);
+                EngageSas(vessel, autopilot, engageMode);
                 Ksp2Log.Info("SAS on result disabled=" + !autopilot.Enabled + " mode=" + autopilot.AutopilotMode);
                 return SasState(vessel);
             }
@@ -433,7 +449,7 @@ namespace FlightDeck.Ksp2
         /// enabling SAS can reset it), so the mode is re-applied after activation - through the
         /// property as a last resort - and the result is verified from the game itself.
         /// </summary>
-        private static void EngageSas(VesselAutopilot autopilot, AutopilotMode mode)
+        private static void EngageSas(VesselComponent vessel, VesselAutopilot autopilot, AutopilotMode mode)
         {
             if (!autopilot.Enabled)
             {
@@ -467,10 +483,12 @@ namespace FlightDeck.Ksp2
 
             if (autopilot.AutopilotMode != mode)
             {
+                string hint = vessel.Landed || vessel.Splashed || !vessel.HasLaunched
+                    ? " SAS direction modes need the vessel in flight; it is still on the ground."
+                    : " Target and maneuver modes need a target or a maneuver node.";
                 throw new ApiException(
                     "sas_mode_unavailable",
-                    "SAS engaged but stayed in " + autopilot.AutopilotMode + " instead of " + mode +
-                    ". Target and maneuver modes need a target or a maneuver node.");
+                    "SAS engaged but stayed in " + autopilot.AutopilotMode + " instead of " + mode + "." + hint);
             }
         }
 

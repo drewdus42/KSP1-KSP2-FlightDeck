@@ -48,7 +48,7 @@ finally {
 
 if (-not $SkipPackage) {
     Invoke-Step "Packaging KSP 2 mod zip" {
-        $zip = Join-Path $dist "KSPFlightDeck2-1.0.0.zip"
+        $zip = Join-Path $dist "KSPFlightDeck2-1.1.0.zip"
         if (Test-Path $zip) {
             Remove-Item $zip -Force
         }

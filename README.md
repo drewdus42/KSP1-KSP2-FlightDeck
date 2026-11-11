@@ -233,7 +233,7 @@ What runs:
 | Protocol tests | `dotnet test KSP1\tests\FlightDeck.Core.Tests` (and `KSP2\...`) | JSON, HTTP semantics (CORS, keep-alive, chunked body), dispatcher timeouts, SAS call planning, legacy API compatibility, validation — 80 tests per repo |
 | KSP 1 smoke test | `KSP1\tests\FlightDeck.Smoke\...\FlightDeck.Smoke.exe` | loads `KSPFlightDeck.dll` against KSP's DLLs, checks the `KSPAddon` contract, drives the real server over a socket |
 | Plugin tests | `node --test plugin\test\*.test.js` | formatters, HTTP client against a fake mod, polling state machine, manifest/asset integrity, artwork coverage — 48 tests |
-| Packaging | `DistributionTool.exe`, `Compress-Archive` | `.streamDeckPlugin`, `KSPFlightDeck-1.0.1.zip`, `KSPFlightDeck2-1.0.0.zip` |
+| Packaging | `DistributionTool.exe`, `Compress-Archive` | `.streamDeckPlugin`, `KSPFlightDeck-1.0.2.zip`, `KSPFlightDeck2-1.1.0.zip` |
 
 There is also a dev host (a simulated vessel serving the real API) for each game and a live check
 for plugin work without the game:
