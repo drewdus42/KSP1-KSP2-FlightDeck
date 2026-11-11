@@ -10,7 +10,7 @@ and the plugin makes **one request for all keys** instead of one request per but
 ## Install
 
 1. Install the mod first: copy `GameData/KSPFlightDeck` into your KSP folder and start the game once.
-2. Double-click `Release/com.novistrum.kspflightcontrol.streamDeckPlugin`, or install it from the
+2. Double-click `Release/com.drewdus.kspflightcontrol.streamDeckPlugin`, or install it from the
    Stream Deck app (the `Release` build is produced by `DistributionTool.exe`).
 3. Drop the **Connection Status** key on your deck and press *Test connection* in its settings. It
    should report `Connected: KSPFlightDeck 1.0.1 (main menu)` or `(vessel in flight)`.
@@ -72,24 +72,26 @@ Stream Deck key ──▶ app.js ──▶ KspApi client ──HTTP──▶ KSP
 Dial input is optimistic: the dial updates instantly and throttle writes are coalesced to at most
 one request every 80 ms (with a trailing write), which keeps the mod responsive while you spin.
 
-## Migrating a profile from the KSP 2 plugin
+## Migrating a profile from an older build
 
-The plugin UUID changed from `com.novistrum.ksp2flightcontrol` to `com.novistrum.kspflightcontrol`,
-so old keys will not light up. Re-add the keys from the new "KSP Flight Control" category
-(profiles must be rebuilt once). All original artwork is still used.
+The plugin UUID has changed twice during development: first from `com.novistrum.ksp2flightcontrol`
+(the original KSP 2 plugin) to `com.novistrum.kspflightcontrol`, and now to
+`com.drewdus.kspflightcontrol` to match the author name. Keys placed with an older UUID will not
+light up, so re-add them from the new "KSP Flight Control" category (profiles must be rebuilt
+once). All original artwork is still used.
 
 ## Development
 
 ```powershell
-node --test test\util.test.js test\snapshot.test.js test\state.test.js test\manifest.test.js test\art.test.js   # 36 tests
-.\DistributionTool.exe -b -i "src\com.novistrum.kspflightcontrol.sdPlugin" -o "Release"
+node --test test\util.test.js test\snapshot.test.js test\state.test.js test\manifest.test.js test\art.test.js   # 48 tests
+.\DistributionTool.exe -b -i "src\com.drewdus.kspflightcontrol.sdPlugin" -o "Release"
 ```
 
 To exercise the plugin against a live API without launching KSP, start the mod's dev host and run
 the end-to-end check (it uses the same `js/api.js`, `js/state.js` and `js/util.js` the plugin runs):
 
 ```powershell
-cd ..\mod
+cd ..\KSP1
 dotnet run --project tests\FlightDeck.DevHost -- --port 8080
 # in another terminal:
 cd ..\plugin
@@ -107,7 +109,7 @@ blank key.
 Source layout:
 
 ```
-src/com.novistrum.kspflightcontrol.sdPlugin/
+src/com.drewdus.kspflightcontrol.sdPlugin/
   manifest.json            actions, encoders, property inspectors
   app.html / app.js        plugin entry point
   js/*.js                  client, polling hub, rendering, helpers

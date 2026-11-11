@@ -1,12 +1,12 @@
 {
 	"SDKVersion": 2,
-	"Author": "Novistrum",
+	"Author": "Drewdus",
 	"Name": "KSP Flight Control",
 	"Description": "Control your Kerbal Space Program 1.12 vessel from a Stream Deck through the KSP Flight Deck mod.",
-	"Version": "2.2.1",
+	"Version": "2.3.0",
 	"CodePath": "app.html",
 	"Icon": "actions/template/assets/plugin",
-	"URL": "https://github.com/drewdus42/streamdeck-ksp2-flight-control-main",
+	"URL": "https://github.com/drewdus42/KSP1-KSP2-FlightDeck",
 	"Software": {
 		"MinimumVersion": "6.0"
 	},
@@ -33,7 +33,7 @@
 				}
 			],
 			"Tooltip": "Toggle a KSP action group",
-			"UUID": "com.novistrum.kspflightcontrol.action",
+			"UUID": "com.drewdus.kspflightcontrol.action",
 			"PropertyInspectorPath": "actions/template/property-inspector/ag-inspector.html"
 		},
 		{
@@ -46,7 +46,7 @@
 				}
 			],
 			"Tooltip": "Launch or activate the next stage",
-			"UUID": "com.novistrum.kspflightcontrol.staging"
+			"UUID": "com.drewdus.kspflightcontrol.staging"
 		},
 		{
 			"Icon": "actions/template/assets/sasOn",
@@ -58,7 +58,7 @@
 				}
 			],
 			"Tooltip": "Enable SAS in a chosen mode, press again to switch it off",
-			"UUID": "com.novistrum.kspflightcontrol.sas",
+			"UUID": "com.drewdus.kspflightcontrol.sas",
 			"PropertyInspectorPath": "actions/template/property-inspector/sas-inspector.html"
 		},
 		{
@@ -71,7 +71,7 @@
 				}
 			],
 			"Tooltip": "Show a live flight readout (altitude, apoapsis, resources, ...)",
-			"UUID": "com.novistrum.kspflightcontrol.telemetry",
+			"UUID": "com.drewdus.kspflightcontrol.telemetry",
 			"PropertyInspectorPath": "actions/template/property-inspector/telemetry-inspector.html"
 		},
 		{
@@ -84,7 +84,7 @@
 				}
 			],
 			"Tooltip": "Shows the mod connection state and the active vessel",
-			"UUID": "com.novistrum.kspflightcontrol.status",
+			"UUID": "com.drewdus.kspflightcontrol.status",
 			"PropertyInspectorPath": "actions/template/property-inspector/status-inspector.html"
 		},
 		{
@@ -107,7 +107,7 @@
 				}
 			],
 			"Tooltip": "Control the throttle of the active vessel",
-			"UUID": "com.novistrum.kspflightcontrol.thrust",
+			"UUID": "com.drewdus.kspflightcontrol.thrust",
 			"PropertyInspectorPath": "actions/template/property-inspector/thrust-inspector.html"
 		},
 		{
@@ -130,7 +130,7 @@
 				}
 			],
 			"Tooltip": "Change time warp and pause the game",
-			"UUID": "com.novistrum.kspflightcontrol.timewarp"
+			"UUID": "com.drewdus.kspflightcontrol.timewarp"
 		}
 	]
 }

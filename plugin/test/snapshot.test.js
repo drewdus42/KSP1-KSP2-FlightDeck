@@ -2,7 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const util = require("../src/com.novistrum.kspflightcontrol.sdPlugin/js/util.js");
+const util = require("../src/com.drewdus.kspflightcontrol.sdPlugin/js/util.js");
 
 // Captured from the mod (KSPFlightDeck 1.0.0) so the plugin is always tested against the
 // exact wire format the game produces, not a hand written approximation.

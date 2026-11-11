@@ -8,9 +8,9 @@
  * It uses the real js/api.js, js/state.js and js/util.js modules, so it validates the
  * exact code path the Stream Deck plugin runs.
  */
-const api = require("../src/com.novistrum.kspflightcontrol.sdPlugin/js/api.js");
-const state = require("../src/com.novistrum.kspflightcontrol.sdPlugin/js/state.js");
-const util = require("../src/com.novistrum.kspflightcontrol.sdPlugin/js/util.js");
+const api = require("../src/com.drewdus.kspflightcontrol.sdPlugin/js/api.js");
+const state = require("../src/com.drewdus.kspflightcontrol.sdPlugin/js/state.js");
+const util = require("../src/com.drewdus.kspflightcontrol.sdPlugin/js/util.js");
 
 const host = process.env.KSP_HOST || "127.0.0.1";
 const port = Number(process.env.KSP_PORT || 8080);

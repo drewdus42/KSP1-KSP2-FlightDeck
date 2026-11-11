@@ -5,7 +5,7 @@
 /// <reference path="js/state.js" />
 /// <reference path="js/images.js" />
 
-const PLUGIN_UUID = "com.novistrum.kspflightcontrol";
+const PLUGIN_UUID = "com.drewdus.kspflightcontrol";
 const ACTION_UUID = {
 	group: PLUGIN_UUID + ".action",
 	staging: PLUGIN_UUID + ".staging",

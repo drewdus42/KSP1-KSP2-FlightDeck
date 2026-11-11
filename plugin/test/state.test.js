@@ -1,8 +1,8 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const http = require("node:http");
-const api = require("../src/com.novistrum.kspflightcontrol.sdPlugin/js/api.js");
-const state = require("../src/com.novistrum.kspflightcontrol.sdPlugin/js/state.js");
+const api = require("../src/com.drewdus.kspflightcontrol.sdPlugin/js/api.js");
+const state = require("../src/com.drewdus.kspflightcontrol.sdPlugin/js/state.js");
 
 function startFakeMod() {
 	const fake = {

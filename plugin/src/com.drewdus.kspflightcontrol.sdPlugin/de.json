@@ -2,31 +2,31 @@
 	"Description": "Steuere Kerbal Space Program 1.12 mit dem Stream Deck (benötigt die Mod KSP Flight Deck).",
 	"Name": "KSP Flight Control",
 	"Category": "KSP Flight Control",
-	"com.novistrum.kspflightcontrol.action": {
+	"com.drewdus.kspflightcontrol.action": {
 		"Name": "Aktionsgruppe",
 		"Tooltip": "Aktionsgruppe umschalten"
 	},
-	"com.novistrum.kspflightcontrol.staging": {
+	"com.drewdus.kspflightcontrol.staging": {
 		"Name": "Stufentrennung",
 		"Tooltip": "Starten oder nächste Stufe aktivieren"
 	},
-	"com.novistrum.kspflightcontrol.sas": {
+	"com.drewdus.kspflightcontrol.sas": {
 		"Name": "SAS-Modus",
 		"Tooltip": "SAS in einem Modus aktivieren, erneut drücken zum Ausschalten"
 	},
-	"com.novistrum.kspflightcontrol.telemetry": {
+	"com.drewdus.kspflightcontrol.telemetry": {
 		"Name": "Telemetrie",
 		"Tooltip": "Live-Flugdaten anzeigen"
 	},
-	"com.novistrum.kspflightcontrol.status": {
+	"com.drewdus.kspflightcontrol.status": {
 		"Name": "Verbindungsstatus",
 		"Tooltip": "Zeigt Verbindung und aktives Raumschiff"
 	},
-	"com.novistrum.kspflightcontrol.thrust": {
+	"com.drewdus.kspflightcontrol.thrust": {
 		"Name": "Schub",
 		"Tooltip": "Schubregler des aktiven Raumschiffs"
 	},
-	"com.novistrum.kspflightcontrol.timewarp": {
+	"com.drewdus.kspflightcontrol.timewarp": {
 		"Name": "Zeitraffer",
 		"Tooltip": "Zeitraffer ändern und pausieren"
 	},

@@ -2,9 +2,9 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const util = require("../src/com.novistrum.kspflightcontrol.sdPlugin/js/util.js");
+const util = require("../src/com.drewdus.kspflightcontrol.sdPlugin/js/util.js");
 
-const pluginRoot = path.join(__dirname, "..", "src", "com.novistrum.kspflightcontrol.sdPlugin");
+const pluginRoot = path.join(__dirname, "..", "src", "com.drewdus.kspflightcontrol.sdPlugin");
 const manifest = JSON.parse(fs.readFileSync(path.join(pluginRoot, "manifest.json"), "utf8"));
 
 const IMAGE_EXTENSIONS = [".svg", ".png", ".jpg", ".jpeg"];

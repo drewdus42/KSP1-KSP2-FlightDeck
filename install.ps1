@@ -20,8 +20,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$pluginPackage = Join-Path $root "plugin\Release\com.novistrum.kspflightcontrol.streamDeckPlugin"
-$pluginFolderName = "com.novistrum.kspflightcontrol.sdPlugin"
+$pluginPackage = Join-Path $root "plugin\Release\com.drewdus.kspflightcontrol.streamDeckPlugin"
+$pluginFolderName = "com.drewdus.kspflightcontrol.sdPlugin"
 
 $wantsPlugin = $Plugin -or $Only -eq "Plugin"
 
@@ -63,6 +63,16 @@ if ($wantsPlugin) {
         $extracted = Join-Path $temp $pluginFolderName
         if (-not (Test-Path $extracted)) {
             throw "Unexpected package layout: $pluginPackage"
+        }
+
+        # Older builds used a different author namespace; remove them so Stream Deck does not load two copies.
+        $legacyNames = @("com.novistrum.kspflightcontrol.sdPlugin", "com.novistrum.ksp2flightcontrol.sdPlugin")
+        foreach ($legacyName in $legacyNames) {
+            $legacy = Join-Path $pluginsRoot $legacyName
+            if (Test-Path $legacy) {
+                Remove-Item $legacy -Recurse -Force
+                Write-Host "Removed previous plugin -> $legacy" -ForegroundColor DarkGray
+            }
         }
 
         if (Test-Path $target) {

@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 
-const pluginRoot = path.join(__dirname, "..", "src", "com.novistrum.kspflightcontrol.sdPlugin");
+const pluginRoot = path.join(__dirname, "..", "src", "com.drewdus.kspflightcontrol.sdPlugin");
 const manifest = JSON.parse(fs.readFileSync(path.join(pluginRoot, "manifest.json"), "utf8"));
 
 const IMAGE_EXTENSIONS = [".svg", ".png", ".jpg", ".jpeg"];
@@ -20,7 +20,7 @@ test("manifest is well formed", () => {
 	assert.equal(manifest.SDKVersion, 2);
 	assert.equal(manifest.Name, "KSP Flight Control");
 	assert.ok(manifest.Version.match(/^\d+\.\d+\.\d+$/));
-	assert.equal(manifest.Author, "Novistrum");
+	assert.equal(manifest.Author, "Drewdus");
 	assert.equal(manifest.Category, "KSP Flight Control");
 	assert.ok(fs.existsSync(path.join(pluginRoot, manifest.CodePath)));
 });
@@ -30,7 +30,7 @@ test("every action has a namespaced unique UUID", () => {
 	assert.equal(new Set(uuids).size, uuids.length);
 
 	for (const uuid of uuids) {
-		assert.ok(uuid.startsWith("com.novistrum.kspflightcontrol."), uuid);
+		assert.ok(uuid.startsWith("com.drewdus.kspflightcontrol."), uuid);
 	}
 });
 

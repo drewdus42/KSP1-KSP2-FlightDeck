@@ -26,7 +26,7 @@ $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ksp1Root = Join-Path $root "KSP1"
 $ksp2Root = Join-Path $root "KSP2"
 $pluginRoot = Join-Path $root "plugin"
-$pluginSource = Join-Path $pluginRoot "src\com.novistrum.kspflightcontrol.sdPlugin"
+$pluginSource = Join-Path $pluginRoot "src\com.drewdus.kspflightcontrol.sdPlugin"
 
 function Invoke-Step {
     param([string]$Name, [scriptblock]$Block)
@@ -69,7 +69,7 @@ if ($Only -eq "All" -or $Only -eq "Plugin") {
 
         if (-not $SkipPackage) {
             Invoke-Step "Packaging Stream Deck plugin" {
-                $package = Join-Path $pluginRoot "Release\com.novistrum.kspflightcontrol.streamDeckPlugin"
+                $package = Join-Path $pluginRoot "Release\com.drewdus.kspflightcontrol.streamDeckPlugin"
                 if (Test-Path $package) {
                     Remove-Item $package -Force
                 }
@@ -91,5 +91,5 @@ if ($Only -eq "All" -or $Only -eq "KSP2") {
     Write-Host "  KSP 2:  $ksp2Root\dist\mods\KSPFlightDeck2"
 }
 if ($Only -eq "All" -or $Only -eq "Plugin") {
-    Write-Host "  Plugin: $pluginRoot\Release\com.novistrum.kspflightcontrol.streamDeckPlugin"
+    Write-Host "  Plugin: $pluginRoot\Release\com.drewdus.kspflightcontrol.streamDeckPlugin"
 }

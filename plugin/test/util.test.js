@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const util = require("../src/com.novistrum.kspflightcontrol.sdPlugin/js/util.js");
+const util = require("../src/com.drewdus.kspflightcontrol.sdPlugin/js/util.js");
 
 test("clamp keeps values inside the range", () => {
 	assert.equal(util.clamp(0.5, 0, 1), 0.5);
