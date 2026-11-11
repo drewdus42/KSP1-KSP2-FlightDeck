@@ -149,6 +149,9 @@ namespace FlightDeck.Core
         private Socket _socket;
         private Thread _acceptThread;
         private volatile bool _running;
+        private long _lastRequestTicks;
+        private int _requestCount;
+        private int _activeConnections;
 
         public HttpServer(Func<HttpRequest, HttpResponse> handler, Action<string> log = null)
         {
@@ -166,6 +169,28 @@ namespace FlightDeck.Core
         public bool IsRunning
         {
             get { return _running; }
+        }
+
+        /// <summary>UTC time the server last accepted a request. Read by the in-flight status panel.</summary>
+        public DateTime LastRequestUtc
+        {
+            get
+            {
+                long ticks = Interlocked.Read(ref _lastRequestTicks);
+                return ticks == 0L ? DateTime.MinValue : new DateTime(ticks, DateTimeKind.Utc);
+            }
+        }
+
+        /// <summary>Total requests served since the server started.</summary>
+        public int RequestCount
+        {
+            get { return Volatile.Read(ref _requestCount); }
+        }
+
+        /// <summary>Client connections currently open (a polling plugin holds a keep-alive one).</summary>
+        public int ActiveConnections
+        {
+            get { return Volatile.Read(ref _activeConnections); }
         }
 
         public void Start(int port)
@@ -264,6 +289,7 @@ namespace FlightDeck.Core
 
         private void HandleConnection(Socket client)
         {
+            Interlocked.Increment(ref _activeConnections);
             try
             {
                 client.NoDelay = true;
@@ -291,6 +317,9 @@ namespace FlightDeck.Core
                         {
                             return;
                         }
+
+                        Interlocked.Exchange(ref _lastRequestTicks, DateTime.UtcNow.Ticks);
+                        Interlocked.Increment(ref _requestCount);
 
                         HttpResponse response;
                         try
@@ -328,6 +357,8 @@ namespace FlightDeck.Core
             }
             finally
             {
+                Interlocked.Decrement(ref _activeConnections);
+
                 try
                 {
                     client.Close();

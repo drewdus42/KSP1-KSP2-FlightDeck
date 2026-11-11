@@ -1,5 +1,10 @@
+# Build output
 bin/
 obj/
-dist/*.zip
+
+# Packaged release: dist/mods (the mod as installed) and the .zip beside it.
+# Both are produced by build.ps1, so they are rebuilt rather than committed.
+dist/
+
 *.user
 .vs/

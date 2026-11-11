@@ -8,3 +8,7 @@ package-lock.json
 .history
 __exclude
 .editorconfig
+
+# Built plugin: the packaged .streamDeckPlugin that build.ps1 and DistributionTool
+# write here. Rebuilt rather than committed.
+Release/

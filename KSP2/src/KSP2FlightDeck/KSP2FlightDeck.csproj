@@ -4,7 +4,7 @@
     <TargetFramework>net472</TargetFramework>
     <RootNamespace>FlightDeck.Ksp2</RootNamespace>
     <AssemblyName>KSPFlightDeck2</AssemblyName>
-    <Version>1.2.0</Version>
+    <Version>1.3.0</Version>
     <Description>Local HTTP control API for Kerbal Space Program 2 (SpaceWarp plugin) used by the Stream Deck flight control plugin.</Description>
     <OutputPath>..\..\dist\mods\KSPFlightDeck2\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -50,6 +50,22 @@
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
       <HintPath>$(Ksp2ManagedDir)\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIElementsModule">
+      <HintPath>$(Ksp2ManagedDir)\UnityEngine.UIElementsModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>$(Ksp2ManagedDir)\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UitkForKsp2">
+      <HintPath>$(Ksp2ManagedDir)\UitkForKsp2.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SpaceWarp2.UI">
+      <HintPath>$(Ksp2ManagedDir)\SpaceWarp2.UI.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>

@@ -13,6 +13,7 @@ namespace FlightDeck.Ksp2
         public bool Enabled = true;
         public int Port = 8081;
         public bool ShowStartupMessage = true;
+        public bool ShowPanel = true;
 
         /// <summary>Folder the plugin dll lives in (…\Kerbal Space Program 2\mods\KSPFlightDeck2).</summary>
         public static string ModDirectory
@@ -85,6 +86,9 @@ namespace FlightDeck.Ksp2
                         case "showstartupmessage":
                             settings.ShowStartupMessage = ParseBool(value, settings.ShowStartupMessage);
                             break;
+                        case "showpanel":
+                            settings.ShowPanel = ParseBool(value, settings.ShowPanel);
+                            break;
                     }
                 }
             }
@@ -111,7 +115,8 @@ namespace FlightDeck.Ksp2
                     "# KSP Flight Deck 2 settings",
                     "enabled = " + (Enabled ? "true" : "false"),
                     "port = " + Port.ToString(CultureInfo.InvariantCulture),
-                    "showStartupMessage = " + (ShowStartupMessage ? "true" : "false")
+                    "showStartupMessage = " + (ShowStartupMessage ? "true" : "false"),
+                    "showPanel = " + (ShowPanel ? "true" : "false")
                 });
             }
             catch (Exception ex)

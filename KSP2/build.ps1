@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
     Builds and verifies the KSP 2 Flight Deck mod.
 
@@ -48,7 +48,7 @@ finally {
 
 if (-not $SkipPackage) {
     Invoke-Step "Packaging KSP 2 mod zip" {
-        $zip = Join-Path $dist "KSPFlightDeck2-1.2.0.zip"
+        $zip = Join-Path $dist "KSPFlightDeck2-1.3.0.zip"
         if (Test-Path $zip) {
             Remove-Item $zip -Force
         }
@@ -62,3 +62,4 @@ Write-Host ""
 Write-Host "Done." -ForegroundColor Green
 Write-Host "  Mod: $dist\mods\KSPFlightDeck2"
 Write-Host "  Install with: .\install.ps1"
+

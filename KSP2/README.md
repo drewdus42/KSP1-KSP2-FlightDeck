@@ -31,6 +31,20 @@ enumeration) are wrapped in try/catch: if enumeration fails, the API falls back 
 fuel and electric-charge percentages instead of failing the request. Anything unusual is logged to
 `mods\KSPFlightDeck2\Logs\KSPFlightDeck2.log`.
 
+## In-game status panel
+
+The mod adds a **Flight Deck** button to the KSC and in-flight app bars. It opens a UITK panel,
+styled with the game's theme, that shows:
+
+- Stream Deck connection state: listening endpoint, last poll age, request count and rate, open
+  connections (green = polling, amber = waiting for the deck, red = server offline)
+- Vessel telemetry: name and situation, throttle, SAS mode, stage, altitude/radar altitude,
+  surface and vertical speed, orbit (Ap/Pe/inclination), delta-v and burn time, time warp
+- Resource levels (top five by capacity) and the currently active action groups
+
+`showPanel = false` hides it at startup; the app bar button and the panel's own **Hide panel**
+button toggle it at any time.
+
 ## Settings
 
 `mods\KSPFlightDeck2\settings.cfg` (created on first run):
@@ -39,6 +53,7 @@ fuel and electric-charge percentages instead of failing the request. Anything un
 enabled = true
 port = 8081
 showStartupMessage = true
+showPanel = true
 ```
 
 If the port is busy the mod tries the next nine ports and logs which one it used.

@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net.Sockets;
 using FlightDeck.Core;
+using KSP.Game;
 using SpaceWarp2.API.Mods;
 
 namespace FlightDeck.Ksp2
@@ -13,7 +14,7 @@ namespace FlightDeck.Ksp2
     /// </summary>
     public sealed class FlightDeckAddon : MonoBehaviourMod
     {
-        public const string Version = "1.2.0";
+        public const string Version = "1.3.0";
 
         private static FlightDeckAddon _instance;
 
@@ -21,11 +22,30 @@ namespace FlightDeck.Ksp2
         private HttpServer _server;
         private Ksp2Bridge _bridge;
         private ApiRouter _router;
+        private Ksp2Settings _settings;
+        private FlightDeckPanel _panel;
         private bool _started;
+        private float _nextSceneCheck;
+        private bool _sceneAllowsPanel;
 
         public static FlightDeckAddon Instance
         {
             get { return _instance; }
+        }
+
+        internal HttpServer Server
+        {
+            get { return _server; }
+        }
+
+        internal Ksp2Bridge Bridge
+        {
+            get { return _bridge; }
+        }
+
+        public bool PanelVisible
+        {
+            get { return _settings != null && _settings.ShowPanel; }
         }
 
         public bool ServerRunning
@@ -41,6 +61,7 @@ namespace FlightDeck.Ksp2
         public override void OnPreInitialized()
         {
             _instance = this;
+            _panel = new FlightDeckPanel();
         }
 
         public override void OnInitialized()
@@ -49,12 +70,27 @@ namespace FlightDeck.Ksp2
             {
                 Ksp2Log.Initialize(Path.Combine(Ksp2Settings.ModDirectory, "Logs", "KSPFlightDeck2.log"));
                 Ksp2Log.Info("KSP Flight Deck 2 " + Version + " starting (SpaceWarp).");
+                _settings = Ksp2Settings.Load();
                 StartServer();
+                AppBarButtons.Register();
             }
             catch (Exception ex)
             {
                 Ksp2Log.Error("Failed to start the Flight Deck HTTP server.", ex);
             }
+        }
+
+        /// <summary>Shows or hides the in-game status panel and persists the choice.</summary>
+        public void SetPanelVisible(bool visible)
+        {
+            if (_settings == null)
+            {
+                return;
+            }
+
+            _settings.ShowPanel = visible;
+            _settings.Save();
+            Ksp2Log.Info(visible ? "Status panel shown." : "Status panel hidden.");
         }
 
         private void StartServer()
@@ -64,7 +100,7 @@ namespace FlightDeck.Ksp2
                 return;
             }
 
-            Ksp2Settings settings = Ksp2Settings.Load();
+            Ksp2Settings settings = _settings ?? Ksp2Settings.Load();
             if (!settings.Enabled)
             {
                 Ksp2Log.Info("API disabled in settings.cfg (enabled = false).");
@@ -157,11 +193,60 @@ namespace FlightDeck.Ksp2
                 {
                     _dispatcher.Pump();
                 }
+
+                UpdatePanel();
             }
             catch (Exception ex)
             {
                 Ksp2Log.Error("Flight Deck update loop failed.", ex);
             }
+        }
+
+        private void UpdatePanel()
+        {
+            if (_panel == null || _settings == null)
+            {
+                return;
+            }
+
+            _panel.SetVisible(this, _settings.ShowPanel && IsPanelScene());
+            _panel.Refresh(this);
+        }
+
+        /// <summary>
+        /// The panel is hidden in the main menu and while loading, but stays available in the KSC,
+        /// editors and flight so the app bar button always gives immediate feedback.
+        /// </summary>
+        private bool IsPanelScene()
+        {
+            if (UnityEngine.Time.unscaledTime < _nextSceneCheck)
+            {
+                return _sceneAllowsPanel;
+            }
+
+            _nextSceneCheck = UnityEngine.Time.unscaledTime + 0.5f;
+
+            try
+            {
+                GameInstance game = GameManager.Instance == null ? null : GameManager.Instance.Game;
+                if (game == null || game.GlobalGameState == null)
+                {
+                    _sceneAllowsPanel = false;
+                    return false;
+                }
+
+                GameState state = game.GlobalGameState.GetState();
+                _sceneAllowsPanel = state != GameState.Invalid &&
+                                    state != GameState.WarmUpLoading &&
+                                    state != GameState.MainMenu &&
+                                    state != GameState.Loading;
+            }
+            catch (Exception)
+            {
+                _sceneAllowsPanel = false;
+            }
+
+            return _sceneAllowsPanel;
         }
 
         private void OnDestroy()
