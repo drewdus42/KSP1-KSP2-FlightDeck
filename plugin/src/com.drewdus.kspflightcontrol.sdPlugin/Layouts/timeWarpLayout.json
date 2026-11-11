@@ -7,35 +7,26 @@
       "value": "Buttons/TouchBar/TimeWarp_Static.jpg",
       "zOrder": 0,
       "enabled": true,
-      "rect": [4, 14, 132, 66]
-    },
-    {
-      "key": "title",
-      "type": "text",
-      "zOrder": 1,
-      "enabled": true,
-      "rect": [4, 2, 132, 12],
-      "font": { "size": 10, "weight": 600 },
-      "alignment": "left"
+      "rect": [0, 0, 200, 100]
     },
     {
       "key": "value",
       "type": "text",
-      "zOrder": 2,
+      "zOrder": 1,
       "enabled": true,
-      "rect": [140, 22, 56, 38],
-      "font": { "size": 20, "weight": 700 },
-      "alignment": "right"
+      "rect": [20, 20, 160, 30],
+      "font": { "size": 22, "weight": 700 },
+      "alignment": "center"
     },
     {
       "key": "indicator",
       "type": "gbar",
-      "zOrder": 3,
+      "zOrder": 2,
       "enabled": true,
-      "rect": [140, 68, 56, 14],
+      "rect": [46, 52, 108, 8],
       "value": 0,
       "subtype": 4,
-      "bar_h": 10,
+      "bar_h": 6,
       "border_w": 0,
       "bar_bg_c": "0:#64748b,0.5:#a855f7,1:#f472b6",
       "range": {

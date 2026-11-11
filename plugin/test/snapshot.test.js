@@ -23,6 +23,7 @@ test("normalizer exposes one spelling for every section", () => {
 	assert.equal(normalized.staging.currentStage, snapshot.staging.CurrentStage);
 	assert.equal(normalized.staging.stageCount, snapshot.staging.StageCount);
 	assert.equal(normalized.staging.prelaunch, snapshot.staging.Prelaunch);
+	assert.equal(normalized.staging.exhausted, Boolean(snapshot.staging.Exhausted));
 	assert.equal(normalized.timeWarp.rate, snapshot.timeWarp.Rate);
 	assert.equal(normalized.timeWarp.maxIndex, snapshot.timeWarp.MaxIndex);
 	assert.equal(normalized.sas.enabled, snapshot.sas.Enabled);
@@ -83,6 +84,17 @@ test("staging label from the mod wins over the prelaunch flag", () => {
 
 	const staged = util.normalizeSnapshot({ staging: { CurrentStage: 1, StageCount: 2, LastStage: 2, Prelaunch: false, Label: "Stage" } });
 	assert.equal(staged.staging.label, "Stage");
+});
+
+test("staging reports when no stages are left", () => {
+	const done = util.normalizeSnapshot({ staging: { CurrentStage: 0, StageCount: 3, LastStage: 3, Prelaunch: false, Exhausted: true, Label: "Done" } });
+	assert.equal(done.staging.exhausted, true);
+
+	const flying = util.normalizeSnapshot({ staging: { CurrentStage: 2, StageCount: 3, LastStage: 3, Prelaunch: false, Exhausted: false } });
+	assert.equal(flying.staging.exhausted, false);
+
+	// Mods that predate the field must not grey the key out.
+	assert.equal(util.normalizeSnapshot({ staging: { CurrentStage: 2, Prelaunch: false } }).staging.exhausted, false);
 });
 
 test("landed vessels report no usable orbit", () => {

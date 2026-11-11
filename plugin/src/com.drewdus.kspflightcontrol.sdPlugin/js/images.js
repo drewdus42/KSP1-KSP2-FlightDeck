@@ -122,7 +122,8 @@
 			tile.badge || "",
 			tile.badgeColor || "",
 			tile.valueSize || "",
-			tile.labelAtBottom ? "bottom" : "top"
+			tile.labelAtBottom ? "bottom" : "top",
+			tile.bare ? "bare" : "framed"
 		].join("|");
 	}
 
@@ -162,7 +163,7 @@
 			context.fillStyle = tile.accent || "#38bdf8";
 			roundedRect(context, 3, 3, TILE_SIZE - 6, 12, 8);
 			context.fill();
-		} else {
+		} else if (!tile.bare) {
 			// Darken the artwork slightly so the readout stays legible.
 			context.fillStyle = "rgba(6, 10, 16, 0.55)";
 			roundedRect(context, 3, 3, TILE_SIZE - 6, TILE_SIZE - 6, 16);
@@ -248,7 +249,8 @@
 				badge: value.badge,
 				badgeColor: value.badgeColor,
 				valueSize: value.valueSize,
-				labelAtBottom: value.labelAtBottom
+				labelAtBottom: value.labelAtBottom,
+				bare: value.bare
 			};
 
 			const signature = "tile|" + tileSignature(tile);

@@ -73,9 +73,11 @@ test("layouts reference existing assets and keys used by app.js", () => {
 		}
 
 		const keys = layout.items.map((item) => item.key);
-		assert.ok(keys.includes("title"));
+		assert.ok(keys.includes("icon"));
 		assert.ok(keys.includes("value"));
 		assert.ok(keys.includes("indicator"));
+		// The artwork carries the dial's own title, so no separate title item is drawn over it.
+		assert.ok(!keys.includes("title"));
 	}
 });
 

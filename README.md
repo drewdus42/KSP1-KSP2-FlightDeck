@@ -146,11 +146,11 @@ One plugin action per kind of key, so a single profile works in both games. What
 
 | Action | Controls | Notes |
 | --- | --- | --- |
-| **Connection Status** | connection state | Shows *flying / main menu / offline* plus the game (KSP 1 or KSP 2), the port and the vessel name. Polls `/api/state` while any key is visible and stops when none are. Property inspector has **Test connection** and a host/port override. |
-| **Action Group** | any action group | Your own artwork for on and off (the real group state, not a guess). Group chosen per key from what the connected game reports. |
-| **Staging** | launch, then next stage | Shows **Launch** artwork until the vessel has launched and **Stage** afterwards; one key covers the whole ascent. |
+| **Connection Status** | connection state | Shows *flying / main menu / offline* plus the game (KSP 1 or KSP 2), the port and the vessel name, drawn straight on your blank panel art. Polls `/api/state` while any key is visible and stops when none are. Property inspector has **Test connection** and a host/port override. |
+| **Action Group** | any action group | Your own artwork for on and off (the real group state, not a guess). Group chosen per key from what the connected game reports. KSP 2's custom groups report no state of their own, so the mod remembers what each press asked for and the key follows that. |
+| **Staging** | launch, then next stage | Shows **Launch** artwork until the vessel has launched and **Stage** afterwards; one key covers the whole ascent. When nothing is left to fire the key turns into your grey blank (`BlankGray`) marked **STAGING DONE** and stops sending stage requests. |
 | **SAS Mode** | SAS + one mode | Pure artwork: filled icon means SAS is holding this key's mode, outline means it isn't. Press engages the mode; press again while it holds that mode switches SAS off. Modes KSP refuses (no target, no node) flash red. |
-| **Telemetry** | one live readout | Altitude, radar altitude, apoapsis, periapsis, orbital speed, surface speed, vertical speed, inclination, period, time to Ap, time to Pe, delta-v (vac), throttle, warp, stage — plus one option per resource the vessel carries. |
+| **Telemetry** | one live readout | Altitude, radar altitude, apoapsis, periapsis, orbital speed, surface speed, vertical speed, inclination, period, time to Ap, time to Pe, delta-v (vac), throttle, warp, stage — plus one option per resource the vessel carries. Drawn directly on your blank panel art: no scrim, no accent bar. |
 | **Thrust** (dial) | throttle 0–100 % | Rotate: 1 % per tick, 5 % per tick when you spin fast. Press the dial to cut throttle, tap the touch strip for full throttle. Writes are coalesced to one request every 80 ms so spinning stays smooth. |
 | **Time Warp** (dial) | warp level, pause | Rotate through the game's warp levels up to its ceiling. Press to pause/unpause, tap the touch strip to drop back to 1×. |
 
@@ -163,8 +163,8 @@ One plugin action per kind of key, so a single profile works in both games. What
 | Solar panels, radiators, science | ✅ emulated from part modules | ✅ native |
 | Antennas group | ✅ emulated | ⚠️ listed but no effect (KSP 2 has no such group) |
 | Resource scan | — | ✅ native, momentary (the key shows ON briefly) |
-| SAS: stability, prograde, retrograde, normal, antinormal, radial in/out, target, anti-target, maneuver | ✅ | ✅ (targeting modes need a target) |
-| Staging / launch vs stage label | ✅ | ✅ (driven by `HasLaunched`) |
+| SAS: stability, prograde, retrograde, normal, antinormal, radial in/out, target, anti-target, maneuver | ✅ | ✅ (mode is set and verified; targeting modes need a target) |
+| Staging: launch → stage → grey "done" key | ✅ | ✅ (from KSP 2's staging stack) |
 | Time warp levels + ceiling, pause | ✅ | ✅ |
 | Orbit readout, delta-v | ✅ | ✅ |
 | Per-resource levels | ✅ | ✅ |
@@ -183,8 +183,8 @@ request cannot be served within 2 s, and a `settings.cfg` that survives reinstal
 - [ ] **Read-only mode** in `settings.cfg` for streaming setups.
 - [ ] **Editor and KSC support** — both mods currently address only the active vessel.
 - [ ] **Science and antenna detail** — show science data volume / relay status, not just the toggle.
-- [ ] **KSP 2 current-stage index** — Redux exposes no public stage number, so staging shows a label
-      rather than a count; revisit if SpaceWarp 2 gains an API.
+- [ ] **Staging depth on a telemetry key** — both mods now report remaining and total stages, so a
+      "stage 3 / 6" readout is possible again if wanted (the staging key itself stays artwork-only).
 - [ ] **Publish to the Stream Deck store** — needs author signing and preview images; keys placed
       with pre-`com.drewdus` builds have to be re-added once.
 - [ ] **Snapshot push instead of polling** — a websocket would halve the round trips on big profiles.

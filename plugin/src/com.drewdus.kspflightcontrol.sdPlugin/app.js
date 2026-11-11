@@ -190,6 +190,21 @@ function renderGroup(entry, snapshot, status) {
 function renderStaging(entry, snapshot, status) {
 	const staging = status === "flight" && snapshot ? snapshot.staging : null;
 	const prelaunch = staging ? Boolean(staging.prelaunch) : true;
+	const exhausted = staging ? Boolean(staging.exhausted) : false;
+
+	if (exhausted) {
+		// Nothing left to fire: the grey blank instead of a Stage button that would do nothing.
+		renderer.key(entry.context, {
+			backgroundImage: KspUtil.ASSETS.stageIdle,
+			bare: true,
+			title: "",
+			label: "STAGING",
+			value: "DONE",
+			unit: "",
+			valueSize: 30
+		});
+		return;
+	}
 
 	// The artwork already says LAUNCH / NEXT STAGE, so the key carries no extra text.
 	renderer.key(entry.context, {
@@ -240,6 +255,8 @@ function renderTelemetry(entry, snapshot, status) {
 
 	renderer.key(entry.context, {
 		backgroundImage: KspUtil.ASSETS.panel,
+		// The user's blank panel art is the face of the key: no scrim, no accent bar.
+		bare: true,
 		label: formatted.label,
 		value: value,
 		unit: online ? formatted.unit : offlineHint(status),
@@ -252,6 +269,7 @@ function renderStatus(entry, snapshot, status, error) {
 	if (status === "offline") {
 		renderer.key(entry.context, {
 			backgroundImage: KspUtil.ASSETS.panel,
+			bare: true,
 			label: "KSP FLIGHT DECK",
 			value: "OFFLINE",
 			unit: error === "unreachable" ? "no mod found" : "check the mod",
@@ -266,6 +284,7 @@ function renderStatus(entry, snapshot, status, error) {
 	if (status === "menu") {
 		renderer.key(entry.context, {
 			backgroundImage: KspUtil.ASSETS.panel,
+			bare: true,
 			label: gameLabel || "KSP FLIGHT DECK",
 			value: "READY",
 			unit: "main menu",
@@ -280,6 +299,7 @@ function renderStatus(entry, snapshot, status, error) {
 
 	renderer.key(entry.context, {
 		backgroundImage: KspUtil.ASSETS.panel,
+		bare: true,
 		label: (vessel.body || gameLabel || "FLIGHT").toUpperCase(),
 		value: name.length > 12 ? name.slice(0, 12) : name,
 		unit: vessel.situationString || vessel.situation || "",
@@ -298,8 +318,8 @@ function renderThrust(entry, snapshot, status) {
 	const percent = Math.round(KspUtil.clamp01(throttle) * 100);
 	const value = status !== "flight" ? KspUtil.DASH : percent + "%";
 
-	// The touch strip artwork (Thrust_Static) already spells THRUST, so only the
-	// value and the bar are sent; title stays empty to avoid doubled-up text.
+	// The touch strip artwork (Thrust_Static) is the whole tile, with the percentage and a slim
+	// gauge sitting in the blank band it leaves in the middle.
 	renderer.feedback(entry.context, {
 		title: "",
 		value: value,
@@ -437,6 +457,13 @@ StagingAction.onWillDisappear(function (jsn) {
 });
 
 StagingAction.onKeyUp(function (jsn) {
+	const state = snapshot();
+	if (state && state.staging && state.staging.exhausted) {
+		// Nothing left to fire: the grey key already says so, so no request and no false hope.
+		$SD.showAlert(jsn.context);
+		return;
+	}
+
 	safeSend(jsn.context, "stage", {}).then(function (result) {
 		if (result) {
 			hub.refresh();

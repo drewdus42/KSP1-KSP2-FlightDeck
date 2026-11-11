@@ -64,6 +64,7 @@ test("shared panel and staging artwork exist", () => {
 	assert.ok(assetExists(util.ASSETS.panel), util.ASSETS.panel);
 	assert.ok(assetExists(util.ASSETS.launch), util.ASSETS.launch);
 	assert.ok(assetExists(util.ASSETS.stage), util.ASSETS.stage);
+	assert.ok(assetExists(util.ASSETS.stageIdle), util.ASSETS.stageIdle);
 	assert.ok(assetExists(util.ASSETS.serverDown), util.ASSETS.serverDown);
 });
 

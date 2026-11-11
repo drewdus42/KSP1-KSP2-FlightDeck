@@ -161,14 +161,17 @@ class ELGSDAction {
 	}
 
 	/**
-	 * Registers a callback function for the onDialPress event, which fires when a SD+ dial was pressed or released
+	 * Registers a callback function for the dial press events. The SDK emits dialDown on the press
+	 * and dialUp on the release, so both are forwarded and the payload tells them apart
+	 * (`pressed: true` on the way down).
 	 * @param {function} fn
 	 */
 	onDialPress(fn) {
 		if (!fn) {
 			console.error('A callback function for the onDialPress event is required for onDialPress.');
 		}
-		this.on(`${this.UUID}.${Events.dialPress}`, (jsn) => fn(jsn));
+		this.on(`${this.UUID}.${Events.dialDown}`, (jsn) => fn(jsn));
+		this.on(`${this.UUID}.${Events.dialUp}`, (jsn) => fn(jsn));
 		return this;
 	}
 

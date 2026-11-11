@@ -3,7 +3,7 @@
 	"Author": "Drewdus",
 	"Name": "KSP Flight Control",
 	"Description": "Control your Kerbal Space Program 1.12 vessel from a Stream Deck through the KSP Flight Deck mod.",
-	"Version": "2.3.0",
+	"Version": "2.4.0",
 	"CodePath": "app.html",
 	"Icon": "actions/template/assets/plugin",
 	"URL": "https://github.com/drewdus42/KSP1-KSP2-FlightDeck",

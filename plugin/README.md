@@ -23,15 +23,15 @@ you edited `settings.cfg` in the mod.
 | Action | Controls | Notes |
 | --- | --- | --- |
 | **Action Group** | any KSP action group | Icon reflects the real group state. Includes virtual groups: solar panels, radiators, antennas and science |
-| **Staging** | launch / next stage | Uses the `Launch` artwork while nothing has been staged yet and `Next Stage` afterwards, with no extra text on the key |
+| **Staging** | launch / next stage | Uses the `Launch` artwork while nothing has been staged yet and `Next Stage` afterwards, with no extra text on the key; when the staging stack is spent the key turns grey (`BlankGray`) and reads `STAGING DONE` |
 | **SAS Mode** | SAS + mode | Your per-mode SAS artwork only (filled icon = SAS is holding that mode, outline = idle). Press engages SAS in the configured mode, press again while it is active switches SAS off. Modes that need a target or maneuver node flash red when KSP refuses |
+| **Telemetry** | one live readout | Altitude, radar altitude, apoapsis, periapsis, orbital/surface/vertical speed, inclination, period, time to Ap/Pe, delta-v, throttle, warp, stage, or any resource (fuel, oxidizer, monoprop, EC, …). Drawn straight on your blank panel art, no scrim or accent bar |
+| **Connection Status** | endpoint settings | Shows `OFFLINE`, `READY` (main menu) or the active vessel, body and situation, on the same blank panel art |
+| **Thrust** (Stream Deck + dial) | throttle | Your `Thrust_Static` touch-bar art as the full tile, with the percentage and a slim level bar in the blank band it leaves. Rotate 1% per tick (5% per fast flick), press → 0%, tap → 100% |
+| **Time Warp** (Stream Deck + dial) | warp + pause | Your `TimeWarp_Static` touch-bar art as the full tile, with the multiplier (`×1` … `×100k`) and warp bar in the blank band. Rotate changes warp index, press toggles pause, tap returns to 1× |
 
 Each SAS key is a toggle: pressing it while SAS holds that mode switches SAS off, otherwise it
 engages that mode. Stability Assist behaves the same as every other mode.
-| **Telemetry** | one live readout | Altitude, radar altitude, apoapsis, periapsis, orbital/surface/vertical speed, inclination, period, time to Ap/Pe, delta-v, throttle, warp, stage, or any resource (fuel, oxidizer, monoprop, EC, …) |
-| **Connection Status** | endpoint settings | Shows `OFFLINE`, `READY` (main menu) or the active vessel, body and situation |
-| **Thrust** (Stream Deck + dial) | throttle | Your `Thrust_Static` touch-bar art with the percentage and level bar beside it. Rotate 1% per tick (5% per fast flick), press → 0%, tap → 100% |
-| **Time Warp** (Stream Deck + dial) | warp + pause | Your `TimeWarp_Static` touch-bar art with the multiplier (`×1` … `×100k`) and warp bar. Rotate changes warp index, press toggles pause, tap returns to 1× |
 
 Every key falls back to a canvas-drawn tile when an asset is missing (for example there is no
 maneuver-node SAS drawing), so new action groups still look intentional.

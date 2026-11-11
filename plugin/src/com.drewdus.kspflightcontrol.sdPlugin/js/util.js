@@ -62,6 +62,7 @@
 		sas: "Buttons/SAS/SAS Modes Unlabelled/",
 		launch: "Buttons/Other/Launch.jpg",
 		stage: "Buttons/Other/Stage.jpg",
+		stageIdle: "Buttons/Other/BlankGray.jpg",
 		panel: "Buttons/Other/Blank3.jpg",
 		serverDown: "Buttons/Other/ServerDown.png"
 	};
@@ -336,8 +337,10 @@
 			staging: {
 				currentStage: readNumber(pick(staging, ["currentStage", "CurrentStage"])),
 				stageCount: readNumber(pick(staging, ["stageCount", "StageCount"])),
+				remainingStages: readNumber(pick(staging, ["remainingStages", "RemainingStages"])),
 				lastStage: readNumber(pick(staging, ["lastStage", "LastStage"])),
 				canStage: Boolean(pick(staging, ["canStage", "CanStage"])),
+				exhausted: Boolean(pick(staging, ["exhausted", "Exhausted"])),
 				prelaunch: Boolean(pick(staging, ["prelaunch", "Prelaunch"])),
 				label: pick(staging, ["label", "Label"]),
 				situation: pick(staging, ["situation", "Situation"])
