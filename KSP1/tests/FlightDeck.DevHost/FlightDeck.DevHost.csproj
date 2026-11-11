@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>FlightDeck.DevHost</RootNamespace>
+    <AssemblyName>FlightDeck.DevHost</AssemblyName>
+    <Description>Runs the Flight Deck API with a simulated vessel so the Stream Deck plugin can be developed without KSP.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FlightDeck.Core\FlightDeck.Core.csproj" />
+  </ItemGroup>
+
+</Project>

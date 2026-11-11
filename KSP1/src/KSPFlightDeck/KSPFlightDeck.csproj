@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <RootNamespace>FlightDeck</RootNamespace>
+    <AssemblyName>KSPFlightDeck</AssemblyName>
+    <Version>1.0.1</Version>
+    <Description>Local HTTP control API for Kerbal Space Program 1.12 (Stream Deck flight control).</Description>
+    <OutputPath>..\..\dist\GameData\KSPFlightDeck\Plugins\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <DebugType>portable</DebugType>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <NoWarn>$(NoWarn);CS0649</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FlightDeck.Core\FlightDeck.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(KspManagedDir)\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>$(KspManagedDir)\Assembly-CSharp-firstpass.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(KspManagedDir)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>$(KspManagedDir)\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="VerifyKspInstall" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(KspManagedDir)\Assembly-CSharp.dll')"
+           Text="KSP assemblies were not found in '$(KspManagedDir)'. Point the build at your install with: dotnet build -p:KspDir=&quot;D:\path\to\Kerbal Space Program&quot;" />
+  </Target>
+
+</Project>

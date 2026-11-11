@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;net8.0</TargetFrameworks>
+    <RootNamespace>FlightDeck.Core</RootNamespace>
+    <AssemblyName>FlightDeck.Core</AssemblyName>
+    <Description>Transport, JSON and API routing for the KSP Flight Deck mod. No KSP or Unity references so it can be unit tested without the game.</Description>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>
