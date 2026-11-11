@@ -13,7 +13,7 @@ namespace FlightDeck.Ksp2
     /// </summary>
     public sealed class FlightDeckAddon : MonoBehaviourMod
     {
-        public const string Version = "1.1.0";
+        public const string Version = "1.2.0";
 
         private static FlightDeckAddon _instance;
 

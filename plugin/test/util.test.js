@@ -118,6 +118,13 @@ test("groupPressParameters asks for the state the key should land on", () => {
 	assert.deepEqual(util.groupPressParameters(util.normalizeSnapshot({ actionGroups: { Gear: true } }), "Gear"), { Group: "Gear", State: false });
 });
 
+test("groupInvertParameters flips the key without firing the group", () => {
+	// A long press only changes what the mod reports, so a drifted one-shot group can be resynced.
+	assert.deepEqual(util.groupInvertParameters({ actionGroups: { Custom01: true } }, "Custom01"), { Group: "Custom01", State: false, LatchOnly: true });
+	assert.deepEqual(util.groupInvertParameters({ actionGroups: { Custom01: false } }, "Custom01"), { Group: "Custom01", State: true, LatchOnly: true });
+	assert.deepEqual(util.groupInvertParameters(null, "Custom01"), { Group: "Custom01", State: true, LatchOnly: true });
+});
+
 test("action group options follow the connected game's capabilities", () => {
 	const ksp1 = util.actionGroupOptions({ actionGroups: ["Gear", "Science", "Custom01"] });
 	assert.deepEqual(ksp1.map((option) => option.id), ["Custom01", "Gear", "Science"]);

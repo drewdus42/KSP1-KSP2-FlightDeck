@@ -104,6 +104,11 @@ namespace FlightDeck.Ksp2
                 {
                     string group = GroupArgument(arguments);
                     bool state = BoolArgument(arguments, "state");
+                    if (Json.GetBool(arguments, "latchOnly", "LatchOnly") == true)
+                    {
+                        return GroupResult(group, LatchActionGroupState(vessel, group, state));
+                    }
+
                     return GroupResult(group, SetActionGroupState(vessel, group, state));
                 }
 
@@ -242,7 +247,7 @@ namespace FlightDeck.Ksp2
         private bool ReadActionGroupState(VesselComponent vessel, string group)
         {
             bool latched;
-            if (IsCustomGroup(group) && _latchedGroups.TryGetValue(group, out latched))
+            if (_latchedGroups.TryGetValue(group, out latched))
             {
                 return latched;
             }
@@ -259,17 +264,15 @@ namespace FlightDeck.Ksp2
             }
 
             vessel.SetActionGroup(native, state);
+            // A real write wins over any manual correction made with a long press.
+            _latchedGroups.Remove(group);
             bool actual = ToBool(vessel.GetActionGroupState(native));
 
             if (IsCustomGroup(group))
             {
                 // Custom groups only fire their parts; when KSP 2 cannot report the state back,
                 // remember what the press asked for so the key holds a stable on/off.
-                if (actual == state)
-                {
-                    _latchedGroups.Remove(group);
-                }
-                else
+                if (actual != state)
                 {
                     _latchedGroups[group] = state;
                     return state;
@@ -277,6 +280,24 @@ namespace FlightDeck.Ksp2
             }
 
             return actual;
+        }
+
+        /// <summary>
+        /// Records the state to report for a group without firing it. Used by the deck's long press:
+        /// when a one-shot group has drifted out of sync, one long press puts the key back where it
+        /// belongs and the next short press fires the parts in the right direction.
+        /// </summary>
+        private bool LatchActionGroupState(VesselComponent vessel, string group, bool state)
+        {
+            KSPActionGroup native;
+            if (!NativeGroups.TryGetValue(group, out native))
+            {
+                throw new ApiException("unknown_action_group", "KSP 2 has no '" + group + "' action group.");
+            }
+
+            ResetLatches(vessel);
+            _latchedGroups[group] = state;
+            return state;
         }
 
         private static bool IsCustomGroup(string group)

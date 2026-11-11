@@ -195,7 +195,11 @@ All action names are case-insensitive. Parameters accept the legacy `ID` key as 
 | --- | --- | --- |
 | `getActionGroupState` | `ID` | `{ Group, State, Status }` |
 | `setActionGroupState` | `ID`, optional `State` | `{ Group, State, Status }` — toggles when `State` is absent (legacy behaviour) |
-| `setActionGroup` | `Group`, `State` | `{ Group, State, Status }` |
+| `setActionGroup` | `Group`, `State`, optional `LatchOnly` | `{ Group, State, Status }` |
+
+`LatchOnly: true` records the state the mod reports **without firing the group**. The plugin uses it
+for a long press, so a one-shot group that has drifted out of sync can be put back in step; the next
+real write clears the latch, and it is dropped when the active vessel changes.
 | `getActionGroups` | – | `{ Groups: { name: bool } }` |
 
 Native KSP 2 groups: `Abort`, `Brakes`, `Gear`, `Lights`, `RCS`, `SAS`, `SolarPanels`,

@@ -22,6 +22,8 @@ const THROTTLE_RELEASE_DELAY_MS = 600;
 const OPTIMISTIC_GROUP_TTL_MS = 1500;
 // How long a refused SAS mode stays written on its key.
 const SAS_REFUSAL_TTL_MS = 3000;
+// Hold an action group key this long to flip it without firing the group.
+const LONG_PRESS_MS = 700;
 
 const client = KspApi.createClient();
 const hub = KspState.createHub({ client });
@@ -461,6 +463,13 @@ ActionGroupToggle.onDidReceiveSettings(function (jsn) {
 	renderEntry(entry, snapshot(), hub.getStatus(), hub.getError());
 });
 
+ActionGroupToggle.onKeyDown(function (jsn) {
+	const entry = entryFor(jsn.context);
+	if (entry) {
+		entry.pressedAt = Date.now();
+	}
+});
+
 ActionGroupToggle.onKeyUp(function (jsn) {
 	const entry = entryFor(jsn.context);
 	const group = entry && entry.settings.action;
@@ -469,11 +478,23 @@ ActionGroupToggle.onKeyUp(function (jsn) {
 		return;
 	}
 
+	const heldMs = entry.pressedAt ? Date.now() - entry.pressedAt : 0;
+	entry.pressedAt = 0;
+
+	// A long press only flips what the key reports, so a group that has drifted out of sync can be
+	// put back in step without firing it; the next short press then fires it the right way.
+	const longPress = entry.settings.longPressInvert !== false && heldMs >= LONG_PRESS_MS;
+	const parameters = longPress
+		? KspUtil.groupInvertParameters(snapshot(), group)
+		: KspUtil.groupPressParameters(snapshot(), group);
+
 	// Send the state to land on rather than a blind toggle, then paint it immediately:
 	// waiting for the next poll made presses look like they did nothing.
-	const parameters = KspUtil.groupPressParameters(snapshot(), group);
 	entry.optimisticGroup = { state: parameters.State, until: Date.now() + OPTIMISTIC_GROUP_TTL_MS };
 	renderEntry(entry, snapshot(), hub.getStatus(), hub.getError());
+	if (longPress) {
+		$SD.showOk(jsn.context);
+	}
 
 	safeSend(jsn.context, "setActionGroup", parameters).then(function (result) {
 		if (!result.ok && entry.optimisticGroup) {

@@ -22,7 +22,7 @@ you edited `settings.cfg` in the mod.
 
 | Action | Controls | Notes |
 | --- | --- | --- |
-| **Action Group** | any KSP action group | Icon reflects the real group state. Includes virtual groups: solar panels, radiators, antennas and science |
+| **Action Group** | any KSP action group | Icon reflects the real group state. Includes virtual groups: solar panels, radiators, antennas and science. A **long press** (≥ 0.7 s) flips the key *without* firing the group, so a one-shot group that drifted out of sync can be put back in step; the property inspector can turn that off |
 | **Staging** | launch / next stage | Uses the `Launch` artwork while nothing has been staged yet and `Next Stage` afterwards, with no extra text on the key; when the staging stack is spent the key turns grey (`BlankGray`) and reads `STAGING DONE` |
 | **SAS Mode** | SAS + mode | Your per-mode SAS artwork only (filled icon = SAS is holding that mode, outline = idle). Press engages SAS in the configured mode, press again while it is active switches SAS off. Modes that need a target or maneuver node flash red when KSP refuses |
 | **Telemetry** | one live readout | Altitude, radar altitude, apoapsis, periapsis, orbital/surface/vertical speed, inclination, period, time to Ap/Pe, delta-v, throttle, warp, stage, or any resource (fuel, oxidizer, monoprop, EC, …). Drawn straight on your blank panel art, no scrim or accent bar |

@@ -517,6 +517,16 @@
 	}
 
 	/**
+	 * Parameters for a long press: the state to report without firing the group. Puts a key back in
+	 * step when a one-shot group has drifted out of sync; the next short press then fires the parts
+	 * in the direction the key shows.
+	 */
+	function groupInvertParameters(snapshot, group) {
+		const current = Boolean(snapshot && snapshot.actionGroups && snapshot.actionGroups[group]);
+		return { Group: group, State: !current, LatchOnly: true };
+	}
+
+	/**
 	 * Parameters for one press of an SAS key.
 	 * A press toggles: if SAS is already holding this key's mode, switch SAS off;
 	 * otherwise engage SAS in this mode (mode and enable together, because KSP's
@@ -557,6 +567,7 @@
 		formatTelemetry: formatTelemetry,
 		actionGroupImage: actionGroupImage,
 		groupPressParameters: groupPressParameters,
+		groupInvertParameters: groupInvertParameters,
 		sasPressParameters: sasPressParameters
 	};
 });

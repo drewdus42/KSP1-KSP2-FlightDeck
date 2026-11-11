@@ -10,6 +10,7 @@ $PI.onConnected(function (jsn) {
     const settings = (jsn && jsn.actionInfo && jsn.actionInfo.payload && jsn.actionInfo.payload.settings) || {};
     currentSettings = settings;
     document.getElementById("agSelect").value = settings.action || "None";
+    document.getElementById("agLongPress").checked = settings.longPressInvert !== false;
     $PI.getGlobalSettings();
 });
 
@@ -84,6 +85,7 @@ function updateHint(capabilities) {
 
 function updateButton() {
     const group = document.getElementById("agSelect").value;
-    currentSettings = Object.assign({}, currentSettings, { action: group });
+    const longPress = document.getElementById("agLongPress").checked;
+    currentSettings = Object.assign({}, currentSettings, { action: group, longPressInvert: longPress });
     $PI.setSettings(currentSettings);
 }

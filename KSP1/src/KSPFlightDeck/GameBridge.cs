@@ -14,6 +14,12 @@ namespace FlightDeck
         private static readonly Dictionary<string, KSPActionGroup> NativeGroups = BuildNativeGroups();
         private static readonly Dictionary<string, VesselAutopilot.AutopilotMode> AutopilotModes = BuildAutopilotModes();
 
+        /// <summary>
+        /// States the deck asked us to report without firing the group (long press), per vessel.
+        /// </summary>
+        private static readonly Dictionary<string, bool> LatchedGroups = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        private static Guid _latchedVessel;
+
         private volatile bool _ready;
 
         public bool IsReady
@@ -57,20 +63,26 @@ namespace FlightDeck
                 case "actiongroup.get":
                 {
                     string group = GroupArgument(arguments);
-                    return GroupResult(group, GetActionGroupState(vessel, group));
+                    return GroupResult(group, ReadActionGroupState(vessel, group));
                 }
 
                 case "actiongroup.set":
                 {
                     string group = GroupArgument(arguments);
                     bool state = BoolArgument(arguments, "state");
+                    if (Json.GetBool(arguments, "latchOnly", "LatchOnly") == true)
+                    {
+                        return GroupResult(group, LatchActionGroupState(vessel, group, state));
+                    }
+
                     return GroupResult(group, SetActionGroupState(vessel, group, state));
                 }
 
                 case "actiongroup.toggle":
                 {
                     string group = GroupArgument(arguments);
-                    return GroupResult(group, SetActionGroupState(vessel, group, !GetActionGroupState(vessel, group)));
+                    ResetLatches(vessel);
+                    return GroupResult(group, SetActionGroupState(vessel, group, !ReadActionGroupState(vessel, group)));
                 }
 
                 case "actiongroup.all":
@@ -206,6 +218,9 @@ namespace FlightDeck
 
         private static bool SetActionGroupState(Vessel vessel, string group, bool state)
         {
+            // A real write wins over any manual correction made with a long press.
+            LatchedGroups.Remove(group);
+
             KSPActionGroup native;
             if (NativeGroups.TryGetValue(group, out native))
             {
@@ -238,14 +253,55 @@ namespace FlightDeck
             return GetActionGroupState(vessel, group);
         }
 
+        private static bool ReadActionGroupState(Vessel vessel, string group)
+        {
+            bool latched;
+            if (LatchedGroups.TryGetValue(group, out latched))
+            {
+                return latched;
+            }
+
+            return GetActionGroupState(vessel, group);
+        }
+
+        /// <summary>
+        /// Records the state to report for a group without firing it. The deck's long press uses this
+        /// to put a key back in step when a one-shot group has drifted; the next real write clears it.
+        /// </summary>
+        private static bool LatchActionGroupState(Vessel vessel, string group, bool state)
+        {
+            if (Array.IndexOf(ActionGroupNames.All, group) < 0)
+            {
+                throw new ApiException("unknown_action_group", "Unknown action group '" + group + "'.");
+            }
+
+            ResetLatches(vessel);
+            LatchedGroups[group] = state;
+            return state;
+        }
+
+        private static void ResetLatches(Vessel vessel)
+        {
+            Guid key = vessel.id;
+            if (key == _latchedVessel)
+            {
+                return;
+            }
+
+            _latchedVessel = key;
+            LatchedGroups.Clear();
+        }
+
         private static Dictionary<string, object> AllActionGroups(Vessel vessel)
         {
+            ResetLatches(vessel);
+
             var groups = new Dictionary<string, object>();
             foreach (string name in ActionGroupNames.All)
             {
                 try
                 {
-                    groups[name] = GetActionGroupState(vessel, name);
+                    groups[name] = ReadActionGroupState(vessel, name);
                 }
                 catch (Exception)
                 {

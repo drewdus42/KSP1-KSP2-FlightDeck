@@ -74,7 +74,7 @@ namespace FlightDeck.Smoke
             }
 
             FieldInfo version = addon.GetField("Version");
-            Check("Version constant is 1.0.2", version != null && (string)version.GetValue(null) == "1.0.2");
+            Check("Version constant is 1.1.0", version != null && (string)version.GetValue(null) == "1.1.0");
         }
 
         private static void CheckBridgeType()

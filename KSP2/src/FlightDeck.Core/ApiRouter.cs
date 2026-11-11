@@ -247,6 +247,14 @@ namespace FlightDeck.Core
 
                         var args = Args("group", group);
                         args["state"] = state.Value;
+                        // "LatchOnly" flips the state the mod reports without firing the group:
+                        // the deck's manual correction when a one-shot group drifts out of sync.
+                        bool? latchOnly = Json.GetBool(arguments, "LatchOnly", "latchOnly");
+                        if (latchOnly.HasValue && latchOnly.Value)
+                        {
+                            args["latchOnly"] = true;
+                        }
+
                         return Success(id, action, WithStatus(_bridge.Execute("actiongroup.set", args)));
                     }
 

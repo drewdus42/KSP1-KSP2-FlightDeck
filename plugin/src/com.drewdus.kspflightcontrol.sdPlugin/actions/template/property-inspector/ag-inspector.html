@@ -42,7 +42,17 @@
             </select>
         </div>
         <div class="sdpi-item">
+            <div class="sdpi-item-label">Long press</div>
+            <div class="sdpi-item-value">
+                <input type="checkbox" id="agLongPress" onchange="updateButton()" />
+                <label for="agLongPress">Flip the key without firing the group</label>
+            </div>
+        </div>
+        <div class="sdpi-item">
             <div class="sdpi-item-info" id="agHint">Looking for the mod...</div>
+        </div>
+        <div class="sdpi-item">
+            <div class="sdpi-item-info">Hold the key for about a second to put it back in step when a one-shot group has drifted out of sync. The next short press then fires the group the way you expect.</div>
         </div>
     </div>
 
