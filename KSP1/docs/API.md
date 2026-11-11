@@ -110,6 +110,7 @@ Returns `204` with the CORS preflight headers.
     "StageCount": 6,
     "LastStage": 5,
     "CanStage": true,
+    "Exhausted": false,
     "Prelaunch": false,
     "Label": "Stage",
     "Situation": "ORBITING"
@@ -210,13 +211,15 @@ autopilot would simply re-engage on the next frame.
 
 | Action | Parameters | `Data` |
 | --- | --- | --- |
-| `getStaging` | – | `{ CurrentStage, StageCount, LastStage, CanStage, Prelaunch, Label, Situation }` |
+| `getStaging` | – | `{ CurrentStage, StageCount, LastStage, CanStage, Exhausted, Prelaunch, Label, Situation }` |
 | `stage` | – | same, after activating the next stage |
 
 `Prelaunch` (and `Label` = `Launch`) is true while nothing has been staged yet — on the pad, and
 also just after lifting off before the first staging event, which is what the original plugin's
 "Launch" button implied. After the first stage fires it becomes `Stage`.
 `CurrentStage` counts down from `LastStage` to 0.
+`Exhausted` turns true once `CurrentStage` reaches 0 (the last stage has already fired), and `Label`
+becomes `Done`; the plugin shows its grey key instead of a Stage button then.
 
 ### Time warp and pause
 

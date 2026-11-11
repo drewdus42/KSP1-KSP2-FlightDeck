@@ -19,6 +19,13 @@ namespace FlightDeck.Ksp2
         private static readonly Dictionary<string, KSPActionGroup> NativeGroups = BuildNativeGroups();
         private static readonly Dictionary<string, AutopilotMode> AutopilotModes = BuildAutopilotModes();
 
+        /// <summary>
+        /// KSP 2's custom groups fire their parts but do not report a toggle state, so the last
+        /// state we asked for is remembered per vessel. Cleared when the active vessel changes.
+        /// </summary>
+        private readonly Dictionary<string, bool> _latchedGroups = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        private string _latchedVessel;
+
         private volatile bool _ready;
         private volatile string _notReadyReason = "Waiting for the game to load.";
 
@@ -90,7 +97,7 @@ namespace FlightDeck.Ksp2
                 case "actiongroup.get":
                 {
                     string group = GroupArgument(arguments);
-                    return GroupResult(group, GetActionGroupState(vessel, group));
+                    return GroupResult(group, ReadActionGroupState(vessel, group));
                 }
 
                 case "actiongroup.set":
@@ -103,7 +110,8 @@ namespace FlightDeck.Ksp2
                 case "actiongroup.toggle":
                 {
                     string group = GroupArgument(arguments);
-                    return GroupResult(group, SetActionGroupState(vessel, group, !GetActionGroupState(vessel, group)));
+                    ResetLatches(vessel);
+                    return GroupResult(group, SetActionGroupState(vessel, group, !ReadActionGroupState(vessel, group)));
                 }
 
                 case "actiongroup.all":
@@ -231,7 +239,18 @@ namespace FlightDeck.Ksp2
             return ToBool(vessel.GetActionGroupState(native));
         }
 
-        private static bool SetActionGroupState(VesselComponent vessel, string group, bool state)
+        private bool ReadActionGroupState(VesselComponent vessel, string group)
+        {
+            bool latched;
+            if (IsCustomGroup(group) && _latchedGroups.TryGetValue(group, out latched))
+            {
+                return latched;
+            }
+
+            return GetActionGroupState(vessel, group);
+        }
+
+        private bool SetActionGroupState(VesselComponent vessel, string group, bool state)
         {
             KSPActionGroup native;
             if (!NativeGroups.TryGetValue(group, out native))
@@ -240,7 +259,29 @@ namespace FlightDeck.Ksp2
             }
 
             vessel.SetActionGroup(native, state);
-            return ToBool(vessel.GetActionGroupState(native));
+            bool actual = ToBool(vessel.GetActionGroupState(native));
+
+            if (IsCustomGroup(group))
+            {
+                // Custom groups only fire their parts; when KSP 2 cannot report the state back,
+                // remember what the press asked for so the key holds a stable on/off.
+                if (actual == state)
+                {
+                    _latchedGroups.Remove(group);
+                }
+                else
+                {
+                    _latchedGroups[group] = state;
+                    return state;
+                }
+            }
+
+            return actual;
+        }
+
+        private static bool IsCustomGroup(string group)
+        {
+            return group != null && group.StartsWith("Custom", StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>KSP 2 reports None/True/False/Mixed; treat Mixed as "at least partly on".</summary>
@@ -249,14 +290,16 @@ namespace FlightDeck.Ksp2
             return state == KSPActionGroupState.True || state == KSPActionGroupState.Mixed;
         }
 
-        private static Dictionary<string, object> AllActionGroups(VesselComponent vessel)
+        private Dictionary<string, object> AllActionGroups(VesselComponent vessel)
         {
+            ResetLatches(vessel);
+
             var groups = new Dictionary<string, object>();
             foreach (string name in ActionGroupNames.WithResourceScan)
             {
                 try
                 {
-                    groups[name] = GetActionGroupState(vessel, name);
+                    groups[name] = ReadActionGroupState(vessel, name);
                 }
                 catch (Exception)
                 {
@@ -265,6 +308,30 @@ namespace FlightDeck.Ksp2
             }
 
             return groups;
+        }
+
+        private void ResetLatches(VesselComponent vessel)
+        {
+            string key = VesselKey(vessel);
+            if (string.Equals(key, _latchedVessel, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _latchedVessel = key;
+            _latchedGroups.Clear();
+        }
+
+        private static string VesselKey(VesselComponent vessel)
+        {
+            try
+            {
+                return vessel.TravelObjectId.ToString();
+            }
+            catch (Exception)
+            {
+                return vessel.Name;
+            }
         }
 
         private static bool IsSasEnabled(VesselComponent vessel)
@@ -311,19 +378,7 @@ namespace FlightDeck.Ksp2
             if (enabled.HasValue && enabled.Value)
             {
                 AutopilotMode engageMode = hasMode ? AutopilotModes[mode] : autopilot.AutopilotMode;
-                if (!autopilot.CanSetMode(engageMode))
-                {
-                    throw new ApiException(
-                        "sas_mode_unavailable",
-                        "SAS cannot enter " + engageMode + " right now. Target and maneuver modes need a target or a maneuver node.");
-                }
-
-                // KSP 2's Activate(mode) sets the mode and engages in one call.
-                if (!autopilot.Activate(engageMode))
-                {
-                    throw new ApiException("sas_unavailable", "KSP refused to engage SAS.");
-                }
-
+                EngageSas(autopilot, engageMode);
                 return SasState(vessel);
             }
 
@@ -347,6 +402,47 @@ namespace FlightDeck.Ksp2
             return SasState(vessel);
         }
 
+        /// <summary>
+        /// Engages SAS in a mode. KSP 2's Activate() does not always carry the mode through (and
+        /// enabling SAS can reset it), so the mode is re-applied after activation and the result is
+        /// verified from the game itself.
+        /// </summary>
+        private static void EngageSas(VesselAutopilot autopilot, AutopilotMode mode)
+        {
+            if (!autopilot.Enabled)
+            {
+                autopilot.Activate(mode);
+            }
+
+            if (!autopilot.Enabled)
+            {
+                autopilot.Enabled = true;
+            }
+
+            if (autopilot.AutopilotMode != mode)
+            {
+                autopilot.SetMode(mode);
+            }
+
+            if (autopilot.AutopilotMode != mode)
+            {
+                autopilot.Activate(mode);
+            }
+
+            if (!autopilot.Enabled)
+            {
+                throw new ApiException("sas_unavailable", "KSP refused to engage SAS. The vessel needs a pilot or a probe core with SAS.");
+            }
+
+            if (autopilot.AutopilotMode != mode)
+            {
+                throw new ApiException(
+                    "sas_mode_unavailable",
+                    "SAS engaged but stayed in " + autopilot.AutopilotMode + " instead of " + mode +
+                    ". Target and maneuver modes need a target or a maneuver node.");
+            }
+        }
+
         private static double SetThrottle(VesselComponent vessel, double value)
         {
             float throttle = (float)Math.Max(0d, Math.Min(1d, value));
@@ -361,25 +457,42 @@ namespace FlightDeck.Ksp2
             // KSP 2 exposes HasLaunched, which is exactly the "press Launch first, then Stage"
             // behaviour the deck uses.
             bool prelaunch = !vessel.HasLaunched || vessel.Situation == VesselSituations.PreLaunch;
-            int stageCount = StageCount(vessel);
-            int currentStage = prelaunch ? Math.Max(0, stageCount - 1) : 0;
+            StagingComponent staging = StagingComponentOf(vessel);
+            int remaining = staging != null ? staging.StageCount : StageCountFromParts(vessel);
+            int total = staging != null ? staging.TotalStageCount : remaining;
+            bool haveStages = remaining > 0 && (staging == null || staging.HaveStages);
+            int currentStage = prelaunch ? Math.Max(0, total - 1) : Math.Max(0, remaining - 1);
 
             return new Dictionary<string, object>
             {
                 { "CurrentStage", currentStage },
-                { "StageCount", stageCount },
-                { "CanStage", vessel.IsControllable },
+                { "StageCount", total },
+                { "RemainingStages", remaining },
+                { "CanStage", !prelaunch && haveStages },
+                { "Exhausted", !prelaunch && !haveStages },
                 { "Prelaunch", prelaunch },
-                { "Label", prelaunch ? "Launch" : "Stage" },
+                { "Label", prelaunch ? "Launch" : haveStages ? "Stage" : "Done" },
                 { "Situation", vessel.Situation.ToString() }
             };
         }
 
+        private static StagingComponent StagingComponentOf(VesselComponent vessel)
+        {
+            try
+            {
+                return vessel.SimulationObject != null ? vessel.SimulationObject.Staging : null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         /// <summary>
-        /// KSP 2 has no public "current stage index"; the staging stack only survives on the parts
-        /// as activation stages, so the count is derived from those.
+        /// Fallback stage count derived from the parts, used only when the staging component is not
+        /// reachable (for example while the vessel is still spawning).
         /// </summary>
-        private static int StageCount(VesselComponent vessel)
+        private static int StageCountFromParts(VesselComponent vessel)
         {
             try
             {

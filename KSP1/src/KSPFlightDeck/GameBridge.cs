@@ -497,6 +497,8 @@ namespace FlightDeck
             int currentStage = StageManager.CurrentStage;
             int lastStage = StageManager.LastStage;
             bool prelaunch = onPad || currentStage >= lastStage;
+            // CurrentStage counts down; at 0 the final stage has already fired.
+            bool exhausted = !prelaunch && currentStage <= 0;
 
             return new Dictionary<string, object>
             {
@@ -504,8 +506,9 @@ namespace FlightDeck
                 { "StageCount", StageManager.StageCount },
                 { "LastStage", lastStage },
                 { "CanStage", StageManager.CanSeparate },
+                { "Exhausted", exhausted },
                 { "Prelaunch", prelaunch },
-                { "Label", prelaunch ? "Launch" : "Stage" },
+                { "Label", prelaunch ? "Launch" : exhausted ? "Done" : "Stage" },
                 { "Situation", vessel.situation.ToString() }
             };
         }

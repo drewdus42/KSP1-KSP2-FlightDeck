@@ -139,8 +139,9 @@ Returns `204` with the CORS preflight headers.
   "staging": {
     "CurrentStage": 3,
     "StageCount": 6,
-    "LastStage": 5,
+    "RemainingStages": 3,
     "CanStage": true,
+    "Exhausted": false,
     "Prelaunch": false,
     "Label": "Stage",
     "Situation": "ORBITING"
@@ -230,22 +231,35 @@ Modes: `StabilityAssist`, `Prograde`, `Retrograde`, `Normal`, `Antinormal`, `Rad
 `RadialOut`, `Target`, `AntiTarget`, `Maneuver` (aliases: `node`, `radial`, `kill`, …).
 
 A mode that KSP 2 refuses (no target, no maneuver node) returns `400 sas_mode_unavailable`.
-KSP 2's `VesselAutopilot.Activate(mode)` sets the mode and engages in one call, so the "mode is
-lost on enable" bug that KSP 1 has cannot happen here.
+`setSas` with `Enabled: true` sets the mode and engages in the same call, then verifies the mode the
+game ended up in (see below) so a key can never claim a mode SAS is not actually holding.
 
 ### Staging
 
 | Action | Parameters | `Data` |
 | --- | --- | --- |
-| `getStaging` | – | `{ CurrentStage, StageCount, CanStage, Prelaunch, Label, Situation }` |
+| `getStaging` | – | `{ CurrentStage, StageCount, RemainingStages, CanStage, Exhausted, Prelaunch, Label, Situation }` |
 | `stage` | – | same, after activating the next stage |
 
 `Prelaunch` (and `Label` = `Launch`) follows `VesselComponent.HasLaunched`, which is exactly the
 "press Launch first, then Stage" behaviour the deck uses.
 
-KSP 2 exposes no public current-stage index, so `StageCount` is derived from part activation
-stages and `CurrentStage` is only meaningful before launch (`StageCount - 1`) — the UI does not
-depend on either, it switches on `Prelaunch`/`Label`.
+Staging comes from `SimulationObject.Staging` (`StageCount` remaining, `TotalStageCount`,
+`HaveStages`). When the staging stack is exhausted, `Exhausted` is true, `CanStage` is false and
+`Label` is `Done`, which the plugin renders as its grey key instead of a Stage button.
+
+### SAS
+
+KSP 2's `VesselAutopilot.Activate()` does not always carry the mode through, so the mod sets the mode
+first, activates, then verifies `AutopilotMode`; a mode that still did not take returns
+`400 sas_mode_unavailable` naming the mode the game actually stayed in.
+
+### Action group state on KSP 2
+
+KSP 2 tracks state for the built-in groups (`Gear`, `RCS`, `SolarPanels`, …) but its custom groups
+(`Custom01`…`Custom10`) only fire their parts and report no state back. The mod remembers the state
+the last write asked for and reports that for those groups, so a Stream Deck key can show a stable
+on/off; the latch is cleared whenever the active vessel changes.
 
 ### Time warp and pause
 
