@@ -483,7 +483,15 @@ ActionGroupToggle.onKeyUp(function (jsn) {
 
 	// A long press only flips what the key reports, so a group that has drifted out of sync can be
 	// put back in step without firing it; the next short press then fires it the right way.
+	const caps = hub.getCapabilities();
 	const longPress = entry.settings.longPressInvert !== false && heldMs >= LONG_PRESS_MS;
+	if (longPress && !(caps && caps.actionGroupLatch === true)) {
+		// An older mod would treat this as a normal press and fire the group, which is the opposite
+		// of what the long press promises.
+		$SD.showAlert(jsn.context);
+		return;
+	}
+
 	const parameters = longPress
 		? KspUtil.groupInvertParameters(snapshot(), group)
 		: KspUtil.groupPressParameters(snapshot(), group);

@@ -16,6 +16,7 @@ namespace FlightDeck.Core
             ActionGroups = new List<string>(ActionGroupNames.All);
             SasModes = new List<string>(Core.SasModes.All);
             VirtualActionGroups = new List<string>();
+            ActionGroupLatch = true;
         }
 
         /// <summary>Stable identifier: "ksp1" or "ksp2".</summary>
@@ -43,6 +44,12 @@ namespace FlightDeck.Core
         public bool TimeWarp { get; set; }
         public bool Pause { get; set; }
 
+        /// <summary>
+        /// The mod can record a group's reported state without firing it, which is what the deck's
+        /// long-press resync needs.
+        /// </summary>
+        public bool ActionGroupLatch { get; set; }
+
         public Dictionary<string, object> ToDictionary()
         {
             return new Dictionary<string, object>
@@ -55,7 +62,8 @@ namespace FlightDeck.Core
                 { "orbit", Orbit },
                 { "staging", Staging },
                 { "timeWarp", TimeWarp },
-                { "pause", Pause }
+                { "pause", Pause },
+                { "actionGroupLatch", ActionGroupLatch }
             };
         }
 
