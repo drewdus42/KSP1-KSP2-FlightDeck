@@ -20,6 +20,7 @@ namespace FlightDeck.Core
         public const string RadiatorPanels = "RadiatorPanels";
         public const string Antennas = "Antennas";
         public const string Science = "Science";
+        public const string ResourceScan = "ResourceScan";
 
         public static readonly string[] CustomGroups =
         {
@@ -28,6 +29,12 @@ namespace FlightDeck.Core
         };
 
         public static readonly string[] All = BuildAll();
+
+        /// <summary>
+        /// KSP 2 additionally has a native ResourceScan group, so its bridge advertises one more
+        /// group than KSP 1 while both keep the same canonical names.
+        /// </summary>
+        public static readonly string[] WithResourceScan = BuildAll(includeResourceScan: true);
 
         private static readonly Dictionary<string, string> Lookup = BuildLookup();
 
@@ -63,12 +70,18 @@ namespace FlightDeck.Core
             }
         }
 
-        private static string[] BuildAll()
+        private static string[] BuildAll(bool includeResourceScan = false)
         {
             var result = new List<string>
             {
                 Abort, Brakes, Gear, Lights, Rcs, Sas, SolarPanels, RadiatorPanels, Antennas, Science
             };
+
+            if (includeResourceScan)
+            {
+                result.Add(ResourceScan);
+            }
+
             result.AddRange(CustomGroups);
             result.Sort(StringComparer.Ordinal);
             return result.ToArray();
@@ -82,6 +95,11 @@ namespace FlightDeck.Core
             {
                 lookup[name] = name;
             }
+
+            lookup[ResourceScan] = ResourceScan;
+            lookup["scan"] = ResourceScan;
+            lookup["resourcescan"] = ResourceScan;
+            lookup["resource scan"] = ResourceScan;
 
             lookup["light"] = Lights;
             lookup["rcs"] = Rcs;

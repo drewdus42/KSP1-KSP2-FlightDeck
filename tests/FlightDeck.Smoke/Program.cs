@@ -105,7 +105,7 @@ namespace FlightDeck.Smoke
         {
             var bridge = new SmokeBridge();
             var dispatcher = new QueueDispatcher();
-            var router = new ApiRouter(bridge, dispatcher, "smoke");
+            var router = new ApiRouter(bridge, dispatcher, "smoke", new GameCapabilities("ksp1", "Kerbal Space Program"));
 
             // Stand-in for the addon's Update() loop, which pumps game-thread work every frame.
             bool running = true;

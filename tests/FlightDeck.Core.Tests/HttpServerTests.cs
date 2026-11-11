@@ -189,7 +189,7 @@ namespace FlightDeck.Core.Tests
         public async Task RouterIsServedEndToEnd()
         {
             var bridge = new FakeBridge { Throttle = 0.4d };
-            var router = new ApiRouter(bridge, new InlineDispatcher(), "1.0.0-test");
+            var router = new ApiRouter(bridge, new InlineDispatcher(), "1.0.0-test", new GameCapabilities("ksp1", "Kerbal Space Program"));
 
             using var server = new HttpServer(router.Handle);
             server.Start(0);

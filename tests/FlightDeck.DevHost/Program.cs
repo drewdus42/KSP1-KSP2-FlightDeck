@@ -23,7 +23,7 @@ namespace FlightDeck.DevHost
 
             var bridge = new DevBridge();
             var dispatcher = new QueueDispatcher();
-            var router = new ApiRouter(bridge, dispatcher, "dev");
+            var router = new ApiRouter(bridge, dispatcher, "dev", new GameCapabilities("ksp1", "Kerbal Space Program (dev host)"));
             using var server = new HttpServer(router.Handle, message => Console.WriteLine("  " + message));
 
             try

@@ -72,7 +72,7 @@ namespace FlightDeck
 
             _bridge = new GameBridge();
             _dispatcher = new QueueDispatcher();
-            _router = new ApiRouter(_bridge, _dispatcher, Version, PluginLog.Warn);
+            _router = new ApiRouter(_bridge, _dispatcher, Version, BuildCapabilities(), PluginLog.Warn);
             _server = new HttpServer(_router.Handle, PluginLog.Warn);
 
             int port = BindFirstAvailablePort(_server, settings.Port);
@@ -103,6 +103,27 @@ namespace FlightDeck
                     // Screen messages are unavailable during the very first frames.
                 }
             }
+        }
+
+        private static GameCapabilities BuildCapabilities()
+        {
+            var capabilities = new GameCapabilities("ksp1", "Kerbal Space Program");
+            capabilities.ActionGroups = new System.Collections.Generic.List<string>(ActionGroupNames.All);
+
+            // KSP 1 has no native solar/radiator/antenna/science groups, so the mod emulates them
+            // by walking part modules.
+            capabilities.VirtualActionGroups = new System.Collections.Generic.List<string>
+            {
+                ActionGroupNames.SolarPanels, ActionGroupNames.RadiatorPanels, ActionGroupNames.Antennas, ActionGroupNames.Science
+            };
+
+            capabilities.Resources = true;
+            capabilities.DeltaV = true;
+            capabilities.Orbit = true;
+            capabilities.Staging = true;
+            capabilities.TimeWarp = true;
+            capabilities.Pause = true;
+            return capabilities;
         }
 
         private static int BindFirstAvailablePort(HttpServer server, int preferredPort)

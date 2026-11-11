@@ -11,7 +11,7 @@ namespace FlightDeck.Core.Tests
         {
             // Constructed on the test thread, so QueueDispatcher treats this thread as the
             // main thread and runs commands inline.
-            return new ApiRouter(bridge, new QueueDispatcher(), "1.0.0-test");
+            return new ApiRouter(bridge, new QueueDispatcher(), "1.0.0-test", new GameCapabilities("ksp1", "Kerbal Space Program"));
         }
 
         private static HttpResponse Post(ApiRouter router, string action, string parametersJson = "{}")
@@ -224,6 +224,43 @@ namespace FlightDeck.Core.Tests
         }
 
         [Fact]
+        public void HealthAdvertisesTheGameAndCapabilities()
+        {
+            var capabilities = new GameCapabilities("ksp2", "Kerbal Space Program 2");
+            capabilities.ActionGroups = new List<string> { "Gear", "ResourceScan" };
+            capabilities.VirtualActionGroups = new List<string>();
+            capabilities.Resources = true;
+
+            var router = new ApiRouter(new FakeBridge(), new QueueDispatcher(), "1.0.0-test", capabilities);
+            var body = Body(router.Handle(new HttpRequest { Method = "GET", Path = "/api/health" }));
+
+            Assert.Equal("ksp2", body["game"]);
+            Assert.Equal("Kerbal Space Program 2", body["gameName"]);
+
+            var caps = Json.AsObject(body["capabilities"]);
+            var groups = (List<object>)caps["actionGroups"];
+            Assert.Contains("ResourceScan", groups);
+            Assert.True((bool)caps["resources"]);
+            Assert.Empty((List<object>)caps["virtualActionGroups"]);
+        }
+
+        [Fact]
+        public void StateAlsoCarriesTheGameAndCapabilities()
+        {
+            var capabilities = new GameCapabilities("ksp1", "Kerbal Space Program");
+            var router = new ApiRouter(new FakeBridge(), new QueueDispatcher(), "1.0.0-test", capabilities);
+
+            var body = Body(router.Handle(new HttpRequest { Method = "GET", Path = "/api/state" }));
+            Assert.Equal("ksp1", body["game"]);
+            Assert.NotNull(body["capabilities"]);
+
+            var menu = Body(new ApiRouter(new FakeBridge { IsReady = false }, new QueueDispatcher(), "1.0.0-test", capabilities)
+                .Handle(new HttpRequest { Method = "GET", Path = "/api/state" }));
+            Assert.Equal("ksp1", menu["game"]);
+            Assert.NotNull(menu["capabilities"]);
+        }
+
+        [Fact]
         public void NotInFlightReturns503()
         {
             var bridge = new FakeBridge { IsReady = false };
@@ -239,7 +276,7 @@ namespace FlightDeck.Core.Tests
         [Fact]
         public void GameThreadTimeoutReturns503()
         {
-            var router = new ApiRouter(new FakeBridge(), new SlowDispatcher(), "1.0.0-test", null, 50);
+            var router = new ApiRouter(new FakeBridge(), new SlowDispatcher(), "1.0.0-test", new GameCapabilities("ksp1", "Kerbal Space Program"), null, 50);
             HttpResponse response = Post(router, "getShipThrottle");
             var body = Body(response);
 

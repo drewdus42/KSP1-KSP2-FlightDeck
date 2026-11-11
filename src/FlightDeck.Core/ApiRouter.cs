@@ -17,7 +17,7 @@ namespace FlightDeck.Core
         private readonly int _dispatchTimeoutMs;
         private readonly Action<string> _log;
 
-        public ApiRouter(IGameBridge bridge, IMainThreadDispatcher dispatcher, string modVersion, Action<string> log = null, int dispatchTimeoutMs = 2000)
+        public ApiRouter(IGameBridge bridge, IMainThreadDispatcher dispatcher, string modVersion, GameCapabilities capabilities, Action<string> log = null, int dispatchTimeoutMs = 2000)
         {
             if (bridge == null) throw new ArgumentNullException("bridge");
             if (dispatcher == null) throw new ArgumentNullException("dispatcher");
@@ -27,9 +27,12 @@ namespace FlightDeck.Core
             _dispatchTimeoutMs = dispatchTimeoutMs;
             _log = log ?? delegate { };
             ModVersion = modVersion ?? "0.0.0";
+            Capabilities = capabilities ?? new GameCapabilities("unknown", "Kerbal Space Program");
         }
 
         public string ModVersion { get; private set; }
+
+        public GameCapabilities Capabilities { get; private set; }
 
         public HttpResponse Handle(HttpRequest request)
         {
@@ -97,6 +100,9 @@ namespace FlightDeck.Core
                 { "mod", ModName },
                 { "version", ModVersion },
                 { "apiVersion", ApiVersion },
+                { "game", Capabilities.GameId },
+                { "gameName", Capabilities.GameName },
+                { "capabilities", Capabilities.ToDictionary() },
                 { "inFlight", _bridge.IsReady },
                 {
                     "endpoints", new List<object>
@@ -126,6 +132,9 @@ namespace FlightDeck.Core
                 { "mod", ModName },
                 { "version", ModVersion },
                 { "apiVersion", ApiVersion },
+                { "game", Capabilities.GameId },
+                { "gameName", Capabilities.GameName },
+                { "capabilities", Capabilities.ToDictionary() },
                 { "inFlight", _bridge.IsReady }
             });
         }
@@ -140,7 +149,10 @@ namespace FlightDeck.Core
                     { "error", "not_in_flight" },
                     { "message", "No vessel is loaded. Enter the flight scene or launch a craft." },
                     { "mod", ModName },
-                    { "version", ModVersion }
+                    { "version", ModVersion },
+                    { "game", Capabilities.GameId },
+                    { "gameName", Capabilities.GameName },
+                    { "capabilities", Capabilities.ToDictionary() }
                 });
             }
 
@@ -151,6 +163,9 @@ namespace FlightDeck.Core
                     { "ok", true },
                     { "mod", ModName },
                     { "version", ModVersion },
+                    { "game", Capabilities.GameId },
+                    { "gameName", Capabilities.GameName },
+                    { "capabilities", Capabilities.ToDictionary() },
                     { "data", _bridge.GetSnapshot() }
                 });
             });
