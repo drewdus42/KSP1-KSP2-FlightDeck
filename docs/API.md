@@ -52,7 +52,7 @@ Failure (HTTP 400 / 503 / 500):
 ### `GET /api/health`
 
 ```json
-{ "ok": true, "mod": "KSPFlightDeck", "version": "1.0.0", "apiVersion": "1", "inFlight": false }
+{ "ok": true, "mod": "KSPFlightDeck", "version": "1.0.1", "apiVersion": "1", "inFlight": false }
 ```
 
 ### `GET /api/state`
@@ -63,7 +63,7 @@ One request returns everything the UI needs. This is what the plugin polls at 4 
 {
   "ok": true,
   "mod": "KSPFlightDeck",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "data": { "...": "see the snapshot schema below" }
 }
 ```
@@ -202,7 +202,9 @@ Modes: `StabilityAssist`, `Prograde`, `Retrograde`, `Normal`, `Antinormal`, `Rad
 
 A mode that KSP refuses (no target, no maneuver node) returns `400 sas_mode_unavailable`.
 `setSas` with `Enabled: true` always includes the mode in the same call, because KSP's
-`Autopilot.Enable()` reverts to Stability Assist on its own.
+`Autopilot.Enable()` reverts to Stability Assist on its own. `Enabled: false` also clears the SAS
+action group, which is what KSP's `VesselAutopilot.Update()` reads every frame — without that the
+autopilot would simply re-engage on the next frame.
 
 ### Staging
 

@@ -51,8 +51,11 @@ Diagnostics go to `GameData/KSPFlightDeck/PluginData/KSPFlightDeck.log` (rotated
 | `Science` | state = an experiment is ready; switching on runs every available `ModuleScienceExperiment` |
 
 SAS requests go through `SasPlan`, a tested planner: KSP's `Autopilot.Enable()` internally calls
-`Enable(StabilityAssist)`, so engaging must be a single `Enable(mode)` call. The mod reports
-`sas_unavailable` rather than silently doing nothing when a vessel has no SAS capability.
+`Enable(StabilityAssist)`, so engaging must be a single `Enable(mode)` call. `VesselAutopilot.Update()`
+also mirrors the SAS action group every frame (group on → `Enable()`, group off → `Disable()`), so
+every SAS change updates the group as well — otherwise disabling is undone immediately and SAS
+appears stuck on. The mod reports `sas_unavailable` rather than silently doing nothing when a vessel
+has no SAS capability.
 
 Staging uses `KSP.UI.Screens.StageManager`; SAS uses `VesselAutopilot.SetMode`/`Enable`; time warp
 uses `TimeWarp.SetRate`; pause uses `FlightDriver.SetPause`; delta-v comes from the stock

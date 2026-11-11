@@ -22,6 +22,7 @@ namespace FlightDeck.DevHost
         private double _throttle = 0.35;
         private string _sasMode = "Prograde";
         private bool _sasEnabled = true;
+        private bool _sasGroup = true;
         private int _stage = 4;
         private int _warpIndex;
         private bool _paused;
@@ -75,6 +76,17 @@ namespace FlightDeck.DevHost
 
         public void Tick()
         {
+            // Emulate VesselAutopilot.Update(): the SAS action group drives the autopilot.
+            if (_sasGroup && !_sasEnabled)
+            {
+                _sasEnabled = true;
+                _sasMode = "StabilityAssist";
+            }
+            else if (!_sasGroup && _sasEnabled)
+            {
+                _sasEnabled = false;
+            }
+
             if (!IsReady || _paused)
             {
                 return;
@@ -207,20 +219,25 @@ namespace FlightDeck.DevHost
 
                     if (arguments.ContainsKey("enabled"))
                     {
-                        _sasEnabled = (bool)arguments["enabled"];
+                        bool enable = (bool)arguments["enabled"];
+                        // KSP keeps the action group and the autopilot in sync; the group is
+                        // what Update() reads, so both must move together.
+                        _sasGroup = enable;
+                        _sasEnabled = enable;
                     }
 
-                    _groups["SAS"] = _sasEnabled;
+                    _groups["SAS"] = _sasGroup;
                     return Sas();
 
                 case "sas.mode":
                     _sasMode = (string)arguments["mode"];
-                    _groups["SAS"] = _sasEnabled;
+                    _groups["SAS"] = _sasGroup;
                     return Sas();
 
                 case "sas.toggle":
-                    _sasEnabled = !_sasEnabled;
-                    _groups["SAS"] = _sasEnabled;
+                    _sasGroup = !(_sasGroup || _sasEnabled);
+                    _sasEnabled = _sasGroup;
+                    _groups["SAS"] = _sasGroup;
                     return Sas();
 
                 case "stage.get":
@@ -263,7 +280,7 @@ namespace FlightDeck.DevHost
         {
             return new Dictionary<string, object>
             {
-                { "Enabled", _sasEnabled },
+                { "Enabled", _sasGroup || _sasEnabled },
                 { "Mode", _sasMode },
                 { "CanSetMode", true }
             };

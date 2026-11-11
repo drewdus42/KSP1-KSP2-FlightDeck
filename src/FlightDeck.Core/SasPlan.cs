@@ -12,18 +12,27 @@ namespace FlightDeck.Core
 
     public sealed class SasOperation
     {
-        public SasOperation(SasOperationKind kind, string mode)
+        public SasOperation(SasOperationKind kind, string mode, bool? actionGroupState = null)
         {
             Kind = kind;
             Mode = mode;
+            ActionGroupState = actionGroupState;
         }
 
         public SasOperationKind Kind { get; private set; }
         public string Mode { get; private set; }
 
+        /// <summary>
+        /// State the SAS action group must end up in. KSP's VesselAutopilot.Update() mirrors the
+        /// action group every frame (group on -> Enable(), group off -> Disable()), so changing
+        /// only the autopilot gets reverted on the next frame and SAS appears stuck on.
+        /// </summary>
+        public bool? ActionGroupState { get; private set; }
+
         public override string ToString()
         {
-            return Mode == null ? Kind.ToString() : Kind + "(" + Mode + ")";
+            string text = Mode == null ? Kind.ToString() : Kind + "(" + Mode + ")";
+            return ActionGroupState.HasValue ? text + " group=" + (ActionGroupState.Value ? "on" : "off") : text;
         }
     }
 
@@ -48,7 +57,7 @@ namespace FlightDeck.Core
 
             if (enabled.HasValue && !enabled.Value)
             {
-                operations.Add(new SasOperation(SasOperationKind.Disable, null));
+                operations.Add(new SasOperation(SasOperationKind.Disable, null, false));
                 return operations;
             }
 
@@ -57,7 +66,7 @@ namespace FlightDeck.Core
             if (enabled.HasValue && enabled.Value)
             {
                 // One call: Enable(mode) sets the mode and turns SAS on.
-                operations.Add(new SasOperation(SasOperationKind.Enable, targetMode));
+                operations.Add(new SasOperation(SasOperationKind.Enable, targetMode, true));
                 return operations;
             }
 
@@ -66,7 +75,7 @@ namespace FlightDeck.Core
                 // Mode-only request: re-enable when SAS is already running (SetMode does that
                 // internally anyway), otherwise just record the mode.
                 operations.Add(currentEnabled
-                    ? new SasOperation(SasOperationKind.Enable, canonicalRequested)
+                    ? new SasOperation(SasOperationKind.Enable, canonicalRequested, true)
                     : new SasOperation(SasOperationKind.SetMode, canonicalRequested));
             }
 

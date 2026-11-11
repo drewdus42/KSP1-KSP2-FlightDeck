@@ -352,12 +352,40 @@ namespace FlightDeck
         private static bool IsSasEnabled(Vessel vessel)
         {
             VesselAutopilot autopilot = vessel.Autopilot;
-            if (autopilot != null)
+
+            // VesselAutopilot.Update() mirrors the SAS action group every frame: group on with
+            // the autopilot off calls Enable(), group off with the autopilot on calls Disable().
+            // The group is therefore the state the player sees, and the only one worth trusting.
+            bool groupOn = vessel.ActionGroups[KSPActionGroup.SAS];
+            if (groupOn)
             {
-                return autopilot.Enabled;
+                return true;
             }
 
-            return vessel.ActionGroups[KSPActionGroup.SAS];
+            return autopilot != null && autopilot.Enabled;
+        }
+
+        private static void SyncSasActionGroup(Vessel vessel, bool active)
+        {
+            try
+            {
+                vessel.ActionGroups.SetGroup(KSPActionGroup.SAS, active);
+
+                bool actual = vessel.ActionGroups[KSPActionGroup.SAS];
+                if (actual != active)
+                {
+                    // SetGroup respects the action group cooldown and can silently do nothing.
+                    PluginLog.Warn(
+                        "SAS action group is still " + (actual ? "on" : "off") + " after requesting " +
+                        (active ? "on" : "off") + " (" +
+                        vessel.ActionGroups.CooldownTimeRemaining(KSPActionGroup.SAS).ToString("0.0") +
+                        "s cooldown).");
+                }
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Warn("Could not set the SAS action group to " + active + ": " + ex.Message);
+            }
         }
 
         private static Dictionary<string, object> SasState(Vessel vessel)
@@ -382,13 +410,16 @@ namespace FlightDeck
                 throw new ApiException("sas_unavailable", "This vessel has no SAS: add a pilot or a probe core.");
             }
 
-            IList<SasOperation> operations = SasPlan.Build(autopilot.Enabled, autopilot.Mode.ToString(), enabled, mode);
+            IList<SasOperation> operations = SasPlan.Build(IsSasEnabled(vessel), autopilot.Mode.ToString(), enabled, mode);
 
             foreach (SasOperation operation in operations)
             {
                 switch (operation.Kind)
                 {
                     case SasOperationKind.Disable:
+                        // Clear the action group first: it is what KSP's Update() reads, so
+                        // disabling the autopilot alone would be undone on the next frame.
+                        SyncSasActionGroup(vessel, false);
                         autopilot.Disable();
                         break;
 
@@ -416,6 +447,8 @@ namespace FlightDeck
                                 "KSP refused to engage SAS. The vessel needs a pilot or a probe core with SAS.");
                         }
 
+                        // Then mirror it into the action group so Update() keeps SAS engaged.
+                        SyncSasActionGroup(vessel, operation.ActionGroupState == true);
                         break;
                     }
 
