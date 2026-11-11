@@ -20,6 +20,8 @@ const THROTTLE_SEND_INTERVAL_MS = 80;
 const THROTTLE_RELEASE_DELAY_MS = 600;
 // How long a pressed group key keeps showing its own state before the poll wins again.
 const OPTIMISTIC_GROUP_TTL_MS = 1500;
+// How long a refused SAS mode stays written on its key.
+const SAS_REFUSAL_TTL_MS = 3000;
 
 const client = KspApi.createClient();
 const hub = KspState.createHub({ client });
@@ -225,6 +227,19 @@ function renderSas(entry, snapshot, status) {
 	// The key lights up only when SAS is engaged in *this* key's mode.
 	const engagedHere = Boolean(enabled && activeMode === desired);
 
+	if (entry.refusal && Date.now() < entry.refusal.until) {
+		renderer.key(entry.context, {
+			backgroundImage: KspUtil.ASSETS.panel,
+			bare: true,
+			label: KspUtil.sasModeLabel(desired).toUpperCase(),
+			value: "REFUSED",
+			unit: entry.refusal.text,
+			accent: "#ef4444",
+			valueSize: 26
+		});
+		return;
+	}
+
 	const artwork = KspUtil.sasImage(desired, engagedHere);
 	if (artwork) {
 		// Pure artwork, no text: the filled/outline icon already shows the state.
@@ -349,15 +364,35 @@ async function safeSend(context, action, parameters) {
 		if (!result.success) {
 			console.warn("KSP Flight Control:", action, "failed:", result.error, result.message);
 			$SD.showAlert(context);
-			return null;
+			return { ok: false, error: result.error || "refused", message: result.message || "" };
 		}
-		return result;
+		return { ok: true, data: result.data };
 	} catch (cause) {
 		console.warn("KSP Flight Control:", action, "failed:", cause);
 		$SD.showAlert(context);
 		hub.refresh();
-		return null;
+		return { ok: false, error: "unreachable", message: String(cause) };
 	}
+}
+
+/** Short text for a refused SAS press, shown on the key instead of a silent red flash. */
+function sasRefusalText(error, mode, sas) {
+	if (error === "sas_unavailable") {
+		return "no SAS";
+	}
+	if (error === "unreachable") {
+		return "offline";
+	}
+	if (mode === "Target" || mode === "AntiTarget") {
+		return "needs target";
+	}
+	if (mode === "Maneuver") {
+		return "needs node";
+	}
+	if (sas && sas.canSetModes && sas.canSetModes[mode] === false) {
+		return "game says no";
+	}
+	return "refused";
 }
 
 function setThrottle(entry, value) {
@@ -437,7 +472,7 @@ ActionGroupToggle.onKeyUp(function (jsn) {
 	renderEntry(entry, snapshot(), hub.getStatus(), hub.getError());
 
 	safeSend(jsn.context, "setActionGroup", parameters).then(function (result) {
-		if (!result && entry.optimisticGroup) {
+		if (!result.ok && entry.optimisticGroup) {
 			entry.optimisticGroup = null;
 		}
 		hub.refresh();
@@ -465,7 +500,7 @@ StagingAction.onKeyUp(function (jsn) {
 	}
 
 	safeSend(jsn.context, "stage", {}).then(function (result) {
-		if (result) {
+		if (result.ok) {
 			hub.refresh();
 		}
 	});
@@ -503,9 +538,23 @@ SasAction.onKeyUp(function (jsn) {
 	const parameters = KspUtil.sasPressParameters(state ? state.sas : null, desired);
 
 	safeSend(jsn.context, "setSas", parameters).then(function (result) {
-		if (result) {
+		if (result.ok) {
 			hub.refresh();
+			return;
 		}
+
+		// Say why on the key: a refused mode used to look like a press that did nothing.
+		entry.refusal = {
+			text: sasRefusalText(result.error, desired, state ? state.sas : null),
+			until: Date.now() + SAS_REFUSAL_TTL_MS
+		};
+		renderEntry(entry, snapshot(), hub.getStatus(), hub.getError());
+		setTimeout(function () {
+			if (entry.refusal && Date.now() >= entry.refusal.until) {
+				entry.refusal = null;
+				renderEntry(entry, snapshot(), hub.getStatus(), hub.getError());
+			}
+		}, SAS_REFUSAL_TTL_MS + 50);
 	});
 });
 
@@ -638,7 +687,7 @@ TimeWarpDial.onDialRotate(function (jsn) {
 	}
 
 	safeSend(jsn.context, "setTimeWarp", { Index: next }).then(function (result) {
-		if (result) {
+		if (result.ok) {
 			hub.refresh();
 		}
 	});
@@ -649,7 +698,7 @@ TimeWarpDial.onDialPress(function (jsn) {
 		return;
 	}
 	safeSend(jsn.context, "togglePause", {}).then(function (result) {
-		if (result) {
+		if (result.ok) {
 			hub.refresh();
 		}
 	});
@@ -660,7 +709,7 @@ TimeWarpDial.onTouchTap(function (jsn) {
 		return;
 	}
 	safeSend(jsn.context, "setTimeWarp", { Index: 0 }).then(function (result) {
-		if (result) {
+		if (result.ok) {
 			hub.refresh();
 		}
 	});

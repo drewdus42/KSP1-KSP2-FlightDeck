@@ -331,7 +331,8 @@
 			sas: {
 				enabled: Boolean(pick(sas, ["enabled", "Enabled"])),
 				mode: pick(sas, ["mode", "Mode"]) || null,
-				canSetMode: Boolean(pick(sas, ["canSetMode", "CanSetMode"]))
+				canSetMode: Boolean(pick(sas, ["canSetMode", "CanSetMode"])),
+				canSetModes: pick(sas, ["canSetModes", "CanSetModes"]) || {}
 			},
 			actionGroups: snapshot.actionGroups || {},
 			staging: {

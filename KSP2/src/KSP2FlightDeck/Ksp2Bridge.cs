@@ -350,8 +350,33 @@ namespace FlightDeck.Ksp2
             {
                 { "Enabled", IsSasEnabled(vessel) },
                 { "Mode", mode },
-                { "CanSetMode", canSetMode }
+                { "CanSetMode", canSetMode },
+                { "CanSetModes", CanSetModes(autopilot) }
             };
+        }
+
+        /// <summary>Per-mode availability, so a client can say why a mode is refused.</summary>
+        private static Dictionary<string, object> CanSetModes(VesselAutopilot autopilot)
+        {
+            var modes = new Dictionary<string, object>();
+            if (autopilot == null)
+            {
+                return modes;
+            }
+
+            foreach (KeyValuePair<string, AutopilotMode> entry in AutopilotModes)
+            {
+                try
+                {
+                    modes[entry.Key] = autopilot.CanSetMode(entry.Value);
+                }
+                catch (Exception)
+                {
+                    modes[entry.Key] = false;
+                }
+            }
+
+            return modes;
         }
 
         private static Dictionary<string, object> SetSas(VesselComponent vessel, bool? enabled, string mode)
@@ -372,13 +397,16 @@ namespace FlightDeck.Ksp2
             if (enabled.HasValue && !enabled.Value)
             {
                 autopilot.Deactivate();
+                Ksp2Log.Info("SAS off -> disabled=" + autopilot.Enabled + " mode=" + autopilot.AutopilotMode);
                 return SasState(vessel);
             }
 
             if (enabled.HasValue && enabled.Value)
             {
                 AutopilotMode engageMode = hasMode ? AutopilotModes[mode] : autopilot.AutopilotMode;
+                Ksp2Log.Info("SAS on request mode=" + engageMode + " canSetMode=" + SafeCanSetMode(autopilot, engageMode));
                 EngageSas(autopilot, engageMode);
+                Ksp2Log.Info("SAS on result disabled=" + !autopilot.Enabled + " mode=" + autopilot.AutopilotMode);
                 return SasState(vessel);
             }
 
@@ -386,17 +414,15 @@ namespace FlightDeck.Ksp2
             {
                 AutopilotMode requested;
                 AutopilotModes.TryGetValue(mode, out requested);
-                if (!autopilot.CanSetMode(requested))
-                {
-                    throw new ApiException(
-                        "sas_mode_unavailable",
-                        "SAS cannot enter " + mode + " right now. Target and maneuver modes need a target or a maneuver node.");
-                }
-
                 if (!autopilot.SetMode(requested) || autopilot.AutopilotMode != requested)
                 {
-                    throw new ApiException("sas_mode_unavailable", "SAS cannot enter " + mode + " right now.");
+                    Ksp2Log.Warn("SAS mode request " + requested + " failed; game reports " + autopilot.AutopilotMode);
+                    throw new ApiException(
+                        "sas_mode_unavailable",
+                        "SAS cannot enter " + mode + " right now: the game stayed in " + autopilot.AutopilotMode + ".");
                 }
+
+                Ksp2Log.Info("SAS mode set to " + autopilot.AutopilotMode);
             }
 
             return SasState(vessel);
@@ -404,29 +430,34 @@ namespace FlightDeck.Ksp2
 
         /// <summary>
         /// Engages SAS in a mode. KSP 2's Activate() does not always carry the mode through (and
-        /// enabling SAS can reset it), so the mode is re-applied after activation and the result is
-        /// verified from the game itself.
+        /// enabling SAS can reset it), so the mode is re-applied after activation - through the
+        /// property as a last resort - and the result is verified from the game itself.
         /// </summary>
         private static void EngageSas(VesselAutopilot autopilot, AutopilotMode mode)
         {
             if (!autopilot.Enabled)
             {
-                autopilot.Activate(mode);
+                TryStep("Activate", delegate { autopilot.Activate(mode); });
             }
 
             if (!autopilot.Enabled)
             {
-                autopilot.Enabled = true;
+                TryStep("Enabled=true", delegate { autopilot.Enabled = true; });
             }
 
             if (autopilot.AutopilotMode != mode)
             {
-                autopilot.SetMode(mode);
+                TryStep("SetMode", delegate { autopilot.SetMode(mode); });
             }
 
             if (autopilot.AutopilotMode != mode)
             {
-                autopilot.Activate(mode);
+                TryStep("AutopilotMode=" + mode, delegate { autopilot.AutopilotMode = mode; });
+            }
+
+            if (autopilot.AutopilotMode != mode)
+            {
+                TryStep("Activate(again)", delegate { autopilot.Activate(mode); });
             }
 
             if (!autopilot.Enabled)
@@ -440,6 +471,30 @@ namespace FlightDeck.Ksp2
                     "sas_mode_unavailable",
                     "SAS engaged but stayed in " + autopilot.AutopilotMode + " instead of " + mode +
                     ". Target and maneuver modes need a target or a maneuver node.");
+            }
+        }
+
+        private static void TryStep(string name, Action step)
+        {
+            try
+            {
+                step();
+            }
+            catch (Exception exception)
+            {
+                Ksp2Log.Warn("SAS step '" + name + "' threw: " + exception.GetType().Name + ": " + exception.Message);
+            }
+        }
+
+        private static string SafeCanSetMode(VesselAutopilot autopilot, AutopilotMode mode)
+        {
+            try
+            {
+                return autopilot.CanSetMode(mode).ToString();
+            }
+            catch (Exception)
+            {
+                return "error";
             }
         }
 
