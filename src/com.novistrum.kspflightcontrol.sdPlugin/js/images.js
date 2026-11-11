@@ -265,6 +265,25 @@
 				return false;
 			}
 
+			function drawFallbackTile() {
+				const fallback = renderTile(Object.assign({}, tile, { backgroundPath: null }));
+				apply(context, signature + "|fallback", function () {
+					streamDeck.setImage(context, fallback);
+					streamDeck.setTitle(context, "");
+				});
+			}
+
+			function drawComposedOrFallback() {
+				if (drawComposed()) {
+					return;
+				}
+				loadAsset(value.backgroundImage).then(function () {
+					if (!drawComposed()) {
+						drawFallbackTile();
+					}
+				});
+			}
+
 			function drawArtwork() {
 				const titleText = value.title || "";
 				loadAsset(value.image).then(function (url) {
@@ -276,33 +295,25 @@
 						return;
 					}
 
-					const fallback = renderTile(Object.assign({}, tile, { backgroundPath: null }));
-					apply(context, signature + "|fallback", function () {
-						streamDeck.setImage(context, fallback);
-						streamDeck.setTitle(context, "");
-					});
+					// Artwork missing: fall back to the panel art, then to a plain tile.
+					if (value.backgroundImage) {
+						drawComposedOrFallback();
+						return;
+					}
+					drawFallbackTile();
 				});
 			}
 
-			if (!value.backgroundImage && !value.image) {
-				drawComposed();
+			if (!value.image) {
+				if (!value.backgroundImage) {
+					drawComposed();
+					return;
+				}
+				drawComposedOrFallback();
 				return;
 			}
 
-			// Artwork as the face of the key: text is composed onto it when possible,
-			// otherwise the raw asset is shown with the Stream Deck title on top.
-			if (value.backgroundImage) {
-				loadAsset(value.backgroundImage).then(function () {
-					if (!drawComposed() && value.image) {
-						drawArtwork();
-					}
-				});
-
-				if (!value.image) {
-					return;
-				}
-			}
-
+			// Artwork as the face of the key, with no composed tile competing with it.
 			drawArtwork();
 		}
 

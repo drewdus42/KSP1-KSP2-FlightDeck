@@ -1,13 +1,15 @@
 /// <reference path="../../../libs/js/property-inspector.js" />
 /// <reference path="../../../libs/js/utils.js" />
 /// <reference path="../../../js/util.js" />
+/// <reference path="../../../js/api.js" />
 
 let currentSettings = { field: "altitude" };
-let endpoint = { host: "127.0.0.1", port: 8080 };
+let endpoint = { host: "127.0.0.1", port: null };
 
 // Resource names are remembered across sessions, so a resource readout stays selectable while
-// KSP sits in the main menu (the mod only reports resources once a vessel is loaded).
+// the game sits in the main menu (the mod only reports resources once a vessel is loaded).
 let knownResources = [];
+let capabilities = null;
 
 $PI.onConnected(function (jsn) {
     const settings = (jsn && jsn.actionInfo && jsn.actionInfo.payload && jsn.actionInfo.payload.settings) || {};
@@ -19,7 +21,7 @@ $PI.onConnected(function (jsn) {
 $PI.onDidReceiveGlobalSettings(function (jsn) {
     const settings = (jsn && jsn.payload && jsn.payload.settings) || {};
     endpoint.host = settings.host || "127.0.0.1";
-    endpoint.port = Number(settings.port) || 8080;
+    endpoint.port = Number(settings.port) > 0 ? Number(settings.port) : null;
 
     knownResources = Array.isArray(settings.resourceFields) ? settings.resourceFields.slice() : [];
     buildOptions(null);
@@ -28,10 +30,21 @@ $PI.onDidReceiveGlobalSettings(function (jsn) {
 
 async function loadSnapshot() {
     let snapshot = null;
+    const client = KspApi.createClient({ host: endpoint.host, port: endpoint.port || 8080 });
+
     try {
-        const response = await fetch("http://" + endpoint.host + ":" + endpoint.port + "/api/state", { cache: "no-store" });
-        const body = await response.json();
-        snapshot = body && body.ok ? body.data : null;
+        const found = await client.discover();
+        if (found) {
+            endpoint.port = found.port;
+            capabilities = found.health.capabilities || capabilities;
+
+            const response = await fetch("http://" + endpoint.host + ":" + endpoint.port + "/api/state", { cache: "no-store" });
+            const body = await response.json();
+            snapshot = body && body.ok ? body.data : null;
+            if (body && body.capabilities) {
+                capabilities = body.capabilities;
+            }
+        }
     } catch (cause) {
         snapshot = null;
     }
@@ -71,7 +84,7 @@ function buildOptions(snapshot) {
         return;
     }
 
-    const fields = KspUtil.telemetryFields(snapshot);
+    const fields = KspUtil.telemetryFields(snapshot, capabilities);
     const added = {};
 
     const flightGroup = document.createElement("optgroup");

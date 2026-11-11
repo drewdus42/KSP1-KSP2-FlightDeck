@@ -70,8 +70,7 @@
 	 * SAS artwork suffixes. "SASnorth"/"SASsouth" are unused because KSP has no such modes;
 	 * Maneuver has no drawing yet, so those keys fall back to a drawn tile.
 	 */
-	const SAS_ART = {
-		StabilityAssist: "lock",
+	const SAS_ART = {		StabilityAssist: "lock",
 		Prograde: "pg",
 		Retrograde: "rg",
 		Normal: "n",
@@ -222,11 +221,12 @@
 			RadiatorPanels: "Radiator Panels",
 			Antennas: "Antennas",
 			Science: "Science",
-			Abort: "Abort",
-			Brakes: "Brakes",
-			Gear: "Gear",
-			Lights: "Lights"
-		};
+				ResourceScan: "Resource Scan",
+				Abort: "Abort",
+				Brakes: "Brakes",
+				Gear: "Gear",
+				Lights: "Lights"
+			};
 
 		return spaced[name] || name;
 	}
@@ -242,8 +242,24 @@
 		return match ? match.label : mode || "Stability Assist";
 	}
 
-	function telemetryFields(snapshot) {
-		const fields = TELEMETRY_FIELDS.slice();
+	function telemetryFields(snapshot, capabilities) {
+		let fields = TELEMETRY_FIELDS.slice();
+
+		if (capabilities) {
+			fields = fields.filter(function (field) {
+				if (field.id === "deltaV") {
+					return capabilities.deltaV !== false;
+				}
+				if (field.id === "warp") {
+					return capabilities.timeWarp !== false;
+				}
+				if (field.id === "stage") {
+					return capabilities.staging !== false;
+				}
+				return true;
+			});
+		}
+
 		const resources = (snapshot && snapshot.resources) || {};
 		Object.keys(resources)
 			.sort()
@@ -360,6 +376,36 @@
 		};
 	}
 
+	/** Every group name the plugin knows how to render, used when no mod is connected. */
+	const DEFAULT_ACTION_GROUPS = [
+		"Abort", "Brakes", "Gear", "Lights", "RCS", "SAS",
+		"SolarPanels", "RadiatorPanels", "Antennas", "Science", "ResourceScan",
+		"Custom01", "Custom02", "Custom03", "Custom04", "Custom05",
+		"Custom06", "Custom07", "Custom08", "Custom09", "Custom10"
+	];
+
+	function gameLabel(gameId, gameName) {
+		if (gameName) {
+			return gameName;
+		}
+		if (gameId === "ksp2") {
+			return "Kerbal Space Program 2";
+		}
+		return gameId === "ksp1" ? "Kerbal Space Program" : "";
+	}
+
+	/** Action group options the property inspector should offer for the connected game. */
+	function actionGroupOptions(capabilities) {
+		const names = capabilities && Array.isArray(capabilities.actionGroups) && capabilities.actionGroups.length
+			? capabilities.actionGroups
+			: DEFAULT_ACTION_GROUPS;
+
+		return names
+			.slice()
+			.sort(function (a, b) { return a.localeCompare(b); })
+			.map(function (name) { return { id: name, label: prettyGroupName(name) }; });
+	}
+
 	/**
 	 * Turns one field of a /api/state snapshot into a key label, value and unit.
 	 */
@@ -457,6 +503,16 @@
 	}
 
 	/**
+	 * Parameters for one press of an action group key: the state the group should end up in.
+	 * Sending the explicit target (instead of a blind toggle) keeps the key and the game in
+	 * step even when a press is repeated before the next poll has caught up.
+	 */
+	function groupPressParameters(snapshot, group) {
+		const current = Boolean(snapshot && snapshot.actionGroups && snapshot.actionGroups[group]);
+		return { Group: group, State: !current };
+	}
+
+	/**
 	 * Parameters for one press of an SAS key.
 	 * A press toggles: if SAS is already holding this key's mode, switch SAS off;
 	 * otherwise engage SAS in this mode (mode and enable together, because KSP's
@@ -488,12 +544,15 @@
 		formatPercent: formatPercent,
 		formatWarpRate: formatWarpRate,
 		prettyGroupName: prettyGroupName,
+		actionGroupOptions: actionGroupOptions,
+		gameLabel: gameLabel,
 		sasBadge: sasBadge,
 		sasModeLabel: sasModeLabel,
 		telemetryFields: telemetryFields,
 		telemetryFieldLabel: telemetryFieldLabel,
 		formatTelemetry: formatTelemetry,
 		actionGroupImage: actionGroupImage,
+		groupPressParameters: groupPressParameters,
 		sasPressParameters: sasPressParameters
 	};
 });

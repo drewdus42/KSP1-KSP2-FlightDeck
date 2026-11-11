@@ -18,6 +18,8 @@ const ACTION_UUID = {
 
 const THROTTLE_SEND_INTERVAL_MS = 80;
 const THROTTLE_RELEASE_DELAY_MS = 600;
+// How long a pressed group key keeps showing its own state before the poll wins again.
+const OPTIMISTIC_GROUP_TTL_MS = 1500;
 
 const client = KspApi.createClient();
 const hub = KspState.createHub({ client });
@@ -69,9 +71,10 @@ function releasePollingWhenIdle() {
 
 function addContext(context, kind, payload) {
 	const existing = contexts.get(context);
-	const entry = existing || { kind: kind, context: context, settings: {}, optimisticThrottle: null, releaseTimer: null };
+	const entry = existing || { kind: kind, context: context, settings: {}, optimisticThrottle: null, optimisticGroup: null, releaseTimer: null };
 	entry.kind = kind;
 	entry.settings = (payload && payload.settings) || entry.settings || {};
+	entry.optimisticGroup = null;
 	contexts.set(context, entry);
 	renderer.forget(context);
 	ensurePolling();
@@ -137,10 +140,27 @@ function offlineHint(status) {
 	return status === "offline" ? "offline" : "";
 }
 
+/**
+ * A pressed group key shows the state it just asked for until the poll agrees with it,
+ * so the artwork flips on the press instead of up to a poll later.
+ */
+function optimisticGroupState(entry, reported) {
+	const pending = entry.optimisticGroup;
+	if (!pending) {
+		return reported;
+	}
+	if (reported === pending.state || Date.now() > pending.until) {
+		entry.optimisticGroup = null;
+		return reported;
+	}
+	return pending.state;
+}
+
 function renderGroup(entry, snapshot, status) {
 	const group = entry.settings.action;
 	const online = status === "flight";
-	const state = online && snapshot && snapshot.actionGroups ? Boolean(snapshot.actionGroups[group]) : false;
+	const reported = online && snapshot && snapshot.actionGroups ? Boolean(snapshot.actionGroups[group]) : false;
+	const state = online ? optimisticGroupState(entry, reported) : false;
 	const configured = group && group !== "None";
 
 	if (!configured) {
@@ -157,6 +177,8 @@ function renderGroup(entry, snapshot, status) {
 
 	renderer.key(entry.context, {
 		image: KspUtil.actionGroupImage(group, state),
+		// Groups without artwork (KSP 2's Resource Scan) get the shared panel instead of a bare tile.
+		backgroundImage: KspUtil.actionGroupImage(group, state) ? null : KspUtil.ASSETS.panel,
 		title: "",
 		label: KspUtil.prettyGroupName(group),
 		value: online ? (state ? "ON" : "OFF") : KspUtil.DASH,
@@ -232,17 +254,19 @@ function renderStatus(entry, snapshot, status, error) {
 			backgroundImage: KspUtil.ASSETS.panel,
 			label: "KSP FLIGHT DECK",
 			value: "OFFLINE",
-			unit: error === "unreachable" ? "mod not found" : "check the mod",
+			unit: error === "unreachable" ? "no mod found" : "check the mod",
 			accent: "#ef4444",
 			valueSize: 30
 		});
 		return;
 	}
 
+	const gameLabel = KspUtil.gameLabel(hub.getGame(), hub.getGameName());
+
 	if (status === "menu") {
 		renderer.key(entry.context, {
 			backgroundImage: KspUtil.ASSETS.panel,
-			label: "KSP FLIGHT DECK",
+			label: gameLabel || "KSP FLIGHT DECK",
 			value: "READY",
 			unit: "main menu",
 			accent: "#f59e0b",
@@ -256,7 +280,7 @@ function renderStatus(entry, snapshot, status, error) {
 
 	renderer.key(entry.context, {
 		backgroundImage: KspUtil.ASSETS.panel,
-		label: (vessel.body || "FLIGHT").toUpperCase(),
+		label: (vessel.body || gameLabel || "FLIGHT").toUpperCase(),
 		value: name.length > 12 ? name.slice(0, 12) : name,
 		unit: vessel.situationString || vessel.situation || "",
 		accent: snapshot && snapshot.paused ? "#f59e0b" : "#22c55e",
@@ -374,6 +398,7 @@ ActionGroupToggle.onDidReceiveSettings(function (jsn) {
 		return;
 	}
 	entry.settings = (jsn.payload && jsn.payload.settings) || {};
+	entry.optimisticGroup = null;
 	renderEntry(entry, snapshot(), hub.getStatus(), hub.getError());
 });
 
@@ -385,10 +410,17 @@ ActionGroupToggle.onKeyUp(function (jsn) {
 		return;
 	}
 
-	safeSend(jsn.context, "setActionGroupState", { ID: group }).then(function (result) {
-		if (result) {
-			hub.refresh();
+	// Send the state to land on rather than a blind toggle, then paint it immediately:
+	// waiting for the next poll made presses look like they did nothing.
+	const parameters = KspUtil.groupPressParameters(snapshot(), group);
+	entry.optimisticGroup = { state: parameters.State, until: Date.now() + OPTIMISTIC_GROUP_TTL_MS };
+	renderEntry(entry, snapshot(), hub.getStatus(), hub.getError());
+
+	safeSend(jsn.context, "setActionGroup", parameters).then(function (result) {
+		if (!result && entry.optimisticGroup) {
+			entry.optimisticGroup = null;
 		}
+		hub.refresh();
 	});
 });
 

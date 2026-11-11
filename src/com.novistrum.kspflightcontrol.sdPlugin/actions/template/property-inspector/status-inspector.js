@@ -1,5 +1,6 @@
 /// <reference path="../../../libs/js/property-inspector.js" />
 /// <reference path="../../../libs/js/utils.js" />
+/// <reference path="../../../js/api.js" />
 
 let globalSettings = { host: "127.0.0.1", port: 8080 };
 
@@ -39,23 +40,37 @@ function saveEndpoint() {
 
 async function testConnection() {
     saveEndpoint();
-    setResult("Testing " + globalSettings.host + ":" + globalSettings.port + " ...", false);
+    setResult("Looking for the mod on " + globalSettings.host + " (ports 8080 and 8081) ...", false);
 
     try {
-        const response = await fetch("http://" + globalSettings.host + ":" + globalSettings.port + "/api/health", { cache: "no-store" });
-        const body = await response.json();
+        // Either game may be running, so probe both default ports instead of assuming one.
+        const client = KspApi.createClient({ host: globalSettings.host, port: globalSettings.port });
+        const found = await client.discover();
 
-        if (body && body.ok) {
-            setResult(
-                "Connected: " + (body.mod || "KSPFlightDeck") + " " + (body.version || "") +
-                (body.inFlight ? " (vessel in flight)" : " (main menu)"),
-                false
-            );
-        } else {
-            setResult("The mod answered but reported: " + (body && body.error ? body.error : "unknown error"), true);
+        if (!found) {
+            setResult("No answer on " + globalSettings.host + ":8080 or :8081. Is the game running with the Flight Deck mod installed?", true);
+            return;
         }
+
+        const health = found.health;
+        if (found.port !== globalSettings.port) {
+            globalSettings = Object.assign({}, globalSettings, { port: found.port });
+            $PI.setGlobalSettings(globalSettings);
+
+            const portInput = document.getElementById("portInput");
+            if (portInput) {
+                portInput.value = found.port;
+            }
+        }
+
+        const gameName = health.gameName || (health.game === "ksp2" ? "Kerbal Space Program 2" : "Kerbal Space Program");
+        setResult(
+            "Connected: " + gameName + " · " + (health.mod || "KSPFlightDeck") + " " + (health.version || "") +
+            " · port " + found.port + (health.inFlight ? " · vessel in flight" : " · main menu"),
+            false
+        );
     } catch (cause) {
-        setResult("No answer on " + globalSettings.host + ":" + globalSettings.port + ". Is KSP running with the mod installed?", true);
+        setResult("No answer on " + globalSettings.host + ". Is the game running with the mod installed?", true);
     }
 }
 

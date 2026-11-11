@@ -25,6 +25,9 @@
 		let client = optionsValue.client || null;
 		let snapshot = null;
 		let status = STATUS.OFFLINE;
+		let game = null;
+		let gameName = null;
+		let capabilities = null;
 		let error = null;
 		let lastSignature = "";
 		let timer = null;
@@ -36,6 +39,31 @@
 		function setClient(next) {
 			client = next;
 			refresh();
+		}
+
+		async function rediscover() {
+			if (!client || typeof client.discover !== "function") {
+				return false;
+			}
+
+			try {
+				const found = await client.discover();
+				if (!found) {
+					return false;
+				}
+
+				client.configure({ port: found.port });
+				game = found.health.game || game;
+				gameName = found.health.gameName || gameName;
+				if (found.health.capabilities) {
+					capabilities = found.health.capabilities;
+				}
+
+				pollNow = true;
+				return true;
+			} catch (cause) {
+				return false;
+			}
 		}
 
 		function statusInterval() {
@@ -77,6 +105,14 @@
 
 				status = nextStatus;
 				snapshot = nextSnapshot;
+				if (body) {
+					game = body.game || game;
+					gameName = body.gameName || gameName;
+					if (body.capabilities) {
+						capabilities = body.capabilities;
+					}
+				}
+
 				error = body && body.ok ? null : body && body.error ? body.error : null;
 				lastSignature = signature(nextSnapshot, status, error);
 				emit();
@@ -84,6 +120,11 @@
 				status = STATUS.OFFLINE;
 				snapshot = null;
 				error = cause && cause.code ? cause.code : "unreachable";
+
+				// The two games listen on different default ports, so look for whichever mod is
+				// running before giving up and showing OFFLINE.
+				await rediscover();
+
 				const nextSignature = signature(null, status, error);
 				if (nextSignature !== lastSignature) {
 					lastSignature = nextSignature;
@@ -167,6 +208,9 @@
 			stop: stop,
 			getSnapshot: function () { return snapshot; },
 			getStatus: function () { return status; },
+			getGame: function () { return game; },
+			getGameName: function () { return gameName; },
+			getCapabilities: function () { return capabilities; },
 			getError: function () { return error; },
 			isRunning: function () { return running; }
 		};

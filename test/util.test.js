@@ -107,6 +107,51 @@ test("action group image paths follow the asset layout", () => {
 	assert.equal(util.actionGroupImage("None", true), null);
 });
 
+test("groupPressParameters asks for the state the key should land on", () => {
+	// Pressing an OFF group turns it on, and vice versa: the plugin never relies on a
+	// blind toggle in the mod, so a repeated press cannot desync the artwork.
+	assert.deepEqual(util.groupPressParameters({ actionGroups: { Lights: false } }, "Lights"), { Group: "Lights", State: true });
+	assert.deepEqual(util.groupPressParameters({ actionGroups: { Lights: true } }, "Lights"), { Group: "Lights", State: false });
+	assert.deepEqual(util.groupPressParameters({ actionGroups: {} }, "Lights"), { Group: "Lights", State: true });
+	assert.deepEqual(util.groupPressParameters(null, "Gear"), { Group: "Gear", State: true });
+	// PascalCase snapshots from an older mod build normalise first, but tolerate raw keys too.
+	assert.deepEqual(util.groupPressParameters(util.normalizeSnapshot({ actionGroups: { Gear: true } }), "Gear"), { Group: "Gear", State: false });
+});
+
+test("action group options follow the connected game's capabilities", () => {
+	const ksp1 = util.actionGroupOptions({ actionGroups: ["Gear", "Science", "Custom01"] });
+	assert.deepEqual(ksp1.map((option) => option.id), ["Custom01", "Gear", "Science"]);
+	assert.equal(ksp1[0].label, "Custom 1");
+
+	// KSP 2 adds a native Resource Scan group.
+	const ksp2 = util.actionGroupOptions({ actionGroups: ["Gear", "ResourceScan"] });
+	assert.deepEqual(ksp2.map((option) => option.id), ["Gear", "ResourceScan"]);
+	assert.equal(ksp2[1].label, "Resource Scan");
+});
+
+test("action group options fall back to the full list with no mod connected", () => {
+	const options = util.actionGroupOptions(null).map((option) => option.id);
+	assert.ok(options.includes("Gear"));
+	assert.ok(options.includes("ResourceScan"));
+	assert.equal(options.length, 21);
+});
+
+test("telemetry fields respect capabilities", () => {
+	const withoutDelta = util.telemetryFields(null, { deltaV: false }).map((field) => field.id);
+	assert.ok(!withoutDelta.includes("deltaV"));
+	assert.ok(withoutDelta.includes("altitude"));
+
+	const full = util.telemetryFields(null, { deltaV: true }).map((field) => field.id);
+	assert.ok(full.includes("deltaV"));
+});
+
+test("gameLabel names the game for the status key", () => {
+	assert.equal(util.gameLabel("ksp2", "Kerbal Space Program 2"), "Kerbal Space Program 2");
+	assert.equal(util.gameLabel("ksp1", null), "Kerbal Space Program");
+	assert.equal(util.gameLabel("ksp2", null), "Kerbal Space Program 2");
+	assert.equal(util.gameLabel(undefined, undefined), "");
+});
+
 test("sasPressParameters toggles SAS off when it holds this key's mode", () => {
 	const utilSas = { enabled: true, mode: "StabilityAssist" };
 

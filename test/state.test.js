@@ -7,6 +7,19 @@ const state = require("../src/com.novistrum.kspflightcontrol.sdPlugin/js/state.j
 function startFakeMod() {
 	const fake = {
 		inFlight: true,
+		game: "ksp2",
+		gameName: "Kerbal Space Program 2",
+		capabilities: {
+			actionGroups: ["Gear", "Lights", "ResourceScan"],
+			sasModes: ["StabilityAssist", "Prograde"],
+			virtualActionGroups: [],
+			resources: true,
+			deltaV: true,
+			orbit: true,
+			staging: true,
+			timeWarp: true,
+			pause: true
+		},
 		requests: [],
 		snapshot: {
 			vessel: { name: "Test Kerman", situation: "ORBITING", situationString: "Orbiting Kerbin", body: "Kerbin" },
@@ -31,12 +44,23 @@ function startFakeMod() {
 			response.setHeader("Access-Control-Allow-Origin", "*");
 
 			if (request.method === "GET" && request.url === "/api/health") {
-				response.end(JSON.stringify({ ok: true, mod: "KSPFlightDeck", version: "1.0.0", inFlight: fake.inFlight }));
+				response.end(JSON.stringify({
+					ok: true,
+					mod: "KSPFlightDeck",
+					version: "1.0.0",
+					game: fake.game,
+					gameName: fake.gameName,
+					capabilities: fake.capabilities,
+					inFlight: fake.inFlight
+				}));
 				return;
 			}
 
 			if (request.method === "GET" && request.url === "/api/state") {
-				response.end(JSON.stringify(fake.inFlight ? { ok: true, data: fake.snapshot } : { ok: false, error: "not_in_flight" }));
+				const state = fake.inFlight
+					? { ok: true, game: fake.game, gameName: fake.gameName, capabilities: fake.capabilities, data: fake.snapshot }
+					: { ok: false, error: "not_in_flight", game: fake.game, gameName: fake.gameName };
+				response.end(JSON.stringify(state));
 				return;
 			}
 
@@ -66,7 +90,7 @@ function startFakeMod() {
 test("client reads the state snapshot", async () => {
 	const { server, port, fake } = await startFakeMod();
 	try {
-		const client = api.createClient({ host: "127.0.0.1", port: port });
+		const client = api.createClient({ host: "127.0.0.1", port: port, discoverPorts: [] });
 		const body = await client.getState();
 
 		assert.equal(body.ok, true);
@@ -80,7 +104,7 @@ test("client reads the state snapshot", async () => {
 test("client sends actions in the legacy envelope", async () => {
 	const { server, port, fake } = await startFakeMod();
 	try {
-		const client = api.createClient({ host: "127.0.0.1", port: port });
+		const client = api.createClient({ host: "127.0.0.1", port: port, discoverPorts: [] });
 		const result = await client.send("setActionGroupState", { ID: "Gear" });
 
 		assert.equal(result.success, true);
@@ -100,13 +124,13 @@ test("client reports an unreachable mod", async () => {
 	const { server, port } = await startFakeMod();
 	await new Promise((resolve) => server.close(resolve));
 
-	const client = api.createClient({ host: "127.0.0.1", port: port, timeoutMs: 500 });
+	const client = api.createClient({ host: "127.0.0.1", port: port, timeoutMs: 500, discoverPorts: [] });
 	await assert.rejects(client.getState(), (error) => error.code === "unreachable");
 });
 
 test("hub reports flight, menu and offline states", async () => {
 	const { server, port, fake } = await startFakeMod();
-	const client = api.createClient({ host: "127.0.0.1", port: port });
+	const client = api.createClient({ host: "127.0.0.1", port: port, discoverPorts: [] });
 	const hub = state.createHub({ client: client, flightIntervalMs: 20, menuIntervalMs: 20, offlineIntervalMs: 20 });
 
 	const seen = [];
@@ -134,7 +158,7 @@ test("hub reports flight, menu and offline states", async () => {
 test("hub stops polling when the last key disappears", async () => {
 	const { server, port, fake } = await startFakeMod();
 	try {
-		const client = api.createClient({ host: "127.0.0.1", port: port });
+		const client = api.createClient({ host: "127.0.0.1", port: port, discoverPorts: [] });
 		const hub = state.createHub({ client: client, flightIntervalMs: 10, menuIntervalMs: 10, offlineIntervalMs: 10 });
 
 		const unsubscribe = hub.subscribe(() => {});
@@ -148,6 +172,46 @@ test("hub stops polling when the last key disappears", async () => {
 	} finally {
 		server.close();
 	}
+});
+
+test("hub exposes the connected game and its capabilities", async () => {
+	const { server, port } = await startFakeMod();
+	try {
+		const client = api.createClient({ host: "127.0.0.1", port: port, discoverPorts: [] });
+		const hub = state.createHub({ client: client, flightIntervalMs: 20, menuIntervalMs: 20, offlineIntervalMs: 20 });
+
+		const unsubscribe = hub.subscribe(() => {});
+		await waitFor(() => hub.getStatus() === state.STATUS.FLIGHT);
+		unsubscribe();
+
+		assert.equal(hub.getGame(), "ksp2");
+		assert.equal(hub.getGameName(), "Kerbal Space Program 2");
+		assert.deepEqual(hub.getCapabilities().actionGroups, ["Gear", "Lights", "ResourceScan"]);
+	} finally {
+		server.close();
+	}
+});
+
+test("discover finds a mod on one of the candidate ports", async () => {
+	const { server, port } = await startFakeMod();
+	try {
+		const client = api.createClient({ host: "127.0.0.1", port: 1, discoverPorts: [] });
+		const found = await client.discover([port]);
+
+		assert.ok(found, "expected to find the fake mod");
+		assert.equal(found.port, port);
+		assert.equal(found.health.game, "ksp2");
+	} finally {
+		server.close();
+	}
+});
+
+test("discover reports nothing when no mod is listening", async () => {
+	const { server, port } = await startFakeMod();
+	await new Promise((resolve) => server.close(resolve));
+
+	const client = api.createClient({ host: "127.0.0.1", port: port, timeoutMs: 400, discoverPorts: [] });
+	assert.equal(await client.discover([port]), null);
 });
 
 async function waitFor(predicate, timeoutMs) {

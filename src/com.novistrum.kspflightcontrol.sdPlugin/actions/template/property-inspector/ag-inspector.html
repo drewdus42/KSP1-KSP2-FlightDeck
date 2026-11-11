@@ -26,6 +26,7 @@
                 <option value="RadiatorPanels">Radiator Panels</option>
                 <option value="Antennas">Antennas</option>
                 <option value="Science">Science</option>
+                <option value="ResourceScan">Resource Scan</option>
                 <option value="RCS">RCS</option>
                 <option value="SAS">SAS</option>
                 <option value="Custom01">Custom 1</option>
@@ -41,7 +42,7 @@
             </select>
         </div>
         <div class="sdpi-item">
-            <div class="sdpi-item-info">Solar panels, radiators, antennas and science are virtual groups: the mod switches every matching part module on the vessel.</div>
+            <div class="sdpi-item-info" id="agHint">Looking for the mod...</div>
         </div>
     </div>
 
@@ -57,7 +58,9 @@
     <script src="../../../libs/js/property-inspector.js"></script>
     <script src="../../../libs/js/dynamic-styles.js"></script>
 
-    <!-- Property Inspector Source -->
+    <!-- Plugin helpers + Property Inspector Source -->
+    <script src="../../../js/util.js"></script>
+    <script src="../../../js/api.js"></script>
     <script src="ag-inspector.js"></script>
 </body>
 

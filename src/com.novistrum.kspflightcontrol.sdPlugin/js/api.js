@@ -11,6 +11,9 @@
 })(typeof self !== "undefined" ? self : this, function () {
 	const DEFAULT_TIMEOUT_MS = 4000;
 
+	// The two mods listen on different ports by default (KSP 1 took 8080 before KSP 2 existed).
+	const DEFAULT_PORTS = [8080, 8081];
+
 	function randomId(length) {
 		const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 		const size = length || 6;
@@ -25,7 +28,8 @@
 		const settings = {
 			host: "127.0.0.1",
 			port: 8080,
-			timeoutMs: DEFAULT_TIMEOUT_MS
+			timeoutMs: DEFAULT_TIMEOUT_MS,
+			discoverPorts: DEFAULT_PORTS.slice()
 		};
 
 		configure(options);
@@ -42,6 +46,9 @@
 			}
 			if (Number(next.timeoutMs) > 0) {
 				settings.timeoutMs = Math.floor(Number(next.timeoutMs));
+			}
+			if (Array.isArray(next.discoverPorts)) {
+				settings.discoverPorts = next.discoverPorts.slice();
 			}
 			return settings;
 		}
@@ -107,6 +114,49 @@
 		}
 
 		/**
+		 * Tries the configured port first, then the other default ports. Returns the health
+		 * document of the first mod that answers, with the port it answered on.
+		 */
+		async function discover(ports) {
+			const candidates = [];
+			const list = ports && ports.length ? ports : settings.discoverPorts || [];
+
+			candidates.push(settings.port);
+			list.forEach(function (port) {
+				if (candidates.indexOf(port) === -1) {
+					candidates.push(port);
+				}
+			});
+
+			if (!list.length) {
+				return null;
+			}
+
+			for (const port of candidates) {
+				if (!(Number(port) > 0)) {
+					continue;
+				}
+
+				const saved = settings.port;
+				settings.port = Math.floor(Number(port));
+				try {
+					const body = await health();
+					if (body && body.ok) {
+						return { port: settings.port, health: body };
+					}
+				} catch (cause) {
+					// Not this port; keep looking.
+				} finally {
+					if (settings.port !== saved) {
+						settings.port = saved;
+					}
+				}
+			}
+
+			return null;
+		}
+
+		/**
 		 * Legacy-compatible action call: { ID, Action, parameters }.
 		 * Network problems throw; API problems come back as { Success: false, Error }.
 		 */
@@ -138,12 +188,14 @@
 			baseUrl: baseUrl,
 			getState: getState,
 			health: health,
+			discover: discover,
 			send: send
 		};
 	}
 
 	return {
 		createClient: createClient,
-		randomId: randomId
+		randomId: randomId,
+		DEFAULT_PORTS: DEFAULT_PORTS
 	};
 });
